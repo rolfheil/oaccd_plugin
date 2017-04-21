@@ -6,7 +6,7 @@
 *.dat
 
 #CMakeFiles
-CMakeFiles/*
+oaccd/CMakeFiles
 CMakeCache.txt
 cmake_install.cmake
 Makefile
