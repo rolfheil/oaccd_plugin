@@ -1,0 +1,15 @@
+# Files resulting from compilation
+*.o
+*.a
+*.so
+*.d
+*.dat
+
+#CMakeFiles
+CMakeFiles/*
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+#Pycache
+__pycache__
