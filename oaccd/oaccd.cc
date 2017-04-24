@@ -27,28 +27,11 @@
  * @END LICENSE
  */
 
-#include "psi4/psi4-dec.h"
-#include "psi4/libparallel/parallel.h"
-#include "psi4/liboptions/liboptions.h"
-#include "psi4/libmints/wavefunction.h"
-#include "psi4/libdpd/dpd.h"
+#include "oaccd.h"
 
 using namespace std;
 
 namespace psi{ namespace oaccd {
-
-class Oaccd : public Wavefunction
-{
-public:
-    Oaccd(SharedWavefunction ref_wfn, Options& options);
-    virtual ~Oaccd();
-
-    double compute_energy();
-
-private:
-    Dimension virtpi_;
-    void common_init();
-};
 
 Oaccd::Oaccd(SharedWavefunction ref_wfn, Options& options)
     : Wavefunction(options)
@@ -74,6 +57,8 @@ void Oaccd::common_init()
     doccpi_.print();
     virtpi_.print();
     frzvpi_.print();
+
+    reference=options_.get_str("REFERENCE");
 }
 
 double Oaccd::compute_energy()
@@ -81,7 +66,8 @@ double Oaccd::compute_energy()
     /* Your code goes here. */
     dpdbuf4 t2;
 
-    if(options.ref != 0) {//Only RHF for the time being
+    if(reference != "RHF") {//Only RHF for the time being
+        throw PSIEXCEPTION("OACCD only implemented for RHF");
     }
     return 0.0;
 }

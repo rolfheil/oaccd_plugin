@@ -33,4 +33,4 @@ project(oaccd CXX)
 
 find_package(psi4 1.0 REQUIRED)
 
-add_psi4_plugin(oaccd oaccd.cc)
+add_psi4_plugin(oaccd oaccd.h oaccd.cc)
