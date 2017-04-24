@@ -81,6 +81,8 @@ double Oaccd::compute_energy()
     /* Your code goes here. */
     dpdbuf4 t2;
 
+    if(options.ref != 0) {//Only RHF for the time being
+    }
     return 0.0;
 }
 
