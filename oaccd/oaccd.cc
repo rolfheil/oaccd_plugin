@@ -1,7 +1,7 @@
 /*
  * @BEGIN LICENSE
  *
- * oaccd by Psi4 Developer, a plugin to:
+ * oaccd by Psi4 Rolf H. Myhre April 2017, a plugin to:
  *
  * Psi4: an open-source quantum chemistry software package
  *
@@ -33,6 +33,10 @@ using namespace std;
 
 namespace psi{ namespace oaccd {
 
+//Will eventually become NOCCD and OACCD routine
+//Currently working on the CCD part
+//This is similar to the CCSD and OCC stuff in Psi4
+
 Oaccd::Oaccd(SharedWavefunction ref_wfn, Options& options)
     : Wavefunction(options)
 {
@@ -57,18 +61,56 @@ void Oaccd::common_init()
     doccpi_.print();
     virtpi_.print();
     frzvpi_.print();
+    nmopi_.print();
+    outfile->Printf("Irreps: %3i \n",nirrep_);
 
     reference=options_.get_str("REFERENCE");
+
+    if(reference == "RHF") {//Only RHF for the time being
+
+        //Allocate memory
+        MOoeIntsA = std::shared_ptr<Matrix>(
+        new Matrix("MO-basis alpha one-electron ints", nirrep_, nmopi_, nmopi_));
+        FockA = std::shared_ptr<Matrix>(
+        new Matrix("MO-basis alpha Fock matrix", nirrep_, nmopi_, nmopi_));
+
+//        FockA = Fa();
+        Fa_->print();
+        Ca_->print();
+    }
+    else{
+        throw PSIEXCEPTION("OACCD only implemented for RHF");
+    }
+
+
 }
 
 double Oaccd::compute_energy()
 {
-    /* Your code goes here. */
-    dpdbuf4 t2;
+    //Start by getting the required integrals
 
-    if(reference != "RHF") {//Only RHF for the time being
-        throw PSIEXCEPTION("OACCD only implemented for RHF");
-    }
+    //Allocate integrals,must be done after constructor
+    std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
+//    spaces.push_back(MOSpace::occ);
+//    spaces.push_back(MOSpace::vir);
+    ints = new IntegralTransform(shared_from_this(), spaces,
+               IntegralTransform::Restricted,
+               IntegralTransform::DPDOnly,
+               IntegralTransform::QTOrder,
+               IntegralTransform::None,
+               false);
+
+    ints->set_dpd_id(0);    
+    ints->set_keep_dpd_so_ints(true);
+    ints->initialize();
+    dpd_set_default(ints->get_dpd_id());
+
+    int_trans_rhf();
+                   
+    Fa_->print();
+    FockA = Fa_;
+    FockA->transform(Ca_);
+    FockA->print();
     return 0.0;
 }
 

@@ -31,10 +31,14 @@
 #define oaccd_h
 
 #include "psi4/psi4-dec.h"
+#include "psi4/libtrans/integraltransform.h"
 #include "psi4/libparallel/parallel.h"
 #include "psi4/liboptions/liboptions.h"
 #include "psi4/libmints/wavefunction.h"
+#include "psi4/libmints/vector.h"
+#include "psi4/libmints/matrix.h"
 #include "psi4/libdpd/dpd.h"
+#include "psi4/libqt/qt.h"
 
 using namespace std;
 
@@ -52,8 +56,18 @@ private:
     Dimension virtpi_;
     void common_init();
 
+    void int_trans_rhf();
+
     //Various option variables
     string reference;
+
+    //Library stuff
+    IntegralTransform *ints;
+
+    //Tensors
+    SharedMatrix MOoeIntsA;
+    SharedMatrix FockA;
+
 };
 
 

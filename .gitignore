@@ -3,7 +3,8 @@
 *.a
 *.so
 *.d
-*.dat
+output.dat
+timer.dat
 
 #CMakeFiles
 oaccd/CMakeFiles
