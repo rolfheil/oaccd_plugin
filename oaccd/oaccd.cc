@@ -28,6 +28,7 @@
  */
 
 #include "oaccd.h"
+#include "psi4/libdpd/dpd.h"
 
 using namespace std;
 
@@ -54,6 +55,8 @@ void Oaccd::common_init()
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
     virtpi_ = nsopi_ - frzcpi_ - frzvpi_ - doccpi_;
+    adoccpi_ = doccpi_ - frzcpi_;
+    avirtpi_ = virtpi_ - frzvpi_;
 
     outfile->Printf("The wavefunction has the following dimensions:\n");
     nsopi_.print();
@@ -74,6 +77,11 @@ void Oaccd::common_init()
         FockA = std::shared_ptr<Matrix>(
         new Matrix("MO-basis alpha Fock matrix", nirrep_, nmopi_, nmopi_));
 
+        FDiaOccA = std::shared_ptr<Vector>(        
+        new Vector("Fock matrix occupied diagonal", adoccpi_));
+        FDiaVirA = std::shared_ptr<Vector>(        
+        new Vector("Fock matrix virtual diagonal", avirtpi_));
+
 //        FockA = Fa();
         Fa_->print();
         Ca_->print();
@@ -91,8 +99,6 @@ double Oaccd::compute_energy()
 
     //Allocate integrals,must be done after constructor
     std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
-//    spaces.push_back(MOSpace::occ);
-//    spaces.push_back(MOSpace::vir);
     ints = new IntegralTransform(shared_from_this(), spaces,
                IntegralTransform::Restricted,
                IntegralTransform::DPDOnly,
@@ -107,10 +113,28 @@ double Oaccd::compute_energy()
 
     int_trans_rhf();
                    
-    Fa_->print();
-    FockA = Fa_;
-    FockA->transform(Ca_);
-    FockA->print();
+//    Fa_->print();
+//    FockA = Fa_;
+//    FockA->transform(Ca_);
+//    FockA->print();
+
+    //Generete a start guess. MP2? Might be bad for difficult cases
+    
+
+    //Start orbital iteration loop here 
+    
+
+    //Start DIIS CC iterations. Implement amplitude equations and figure out DIIS library
+
+    
+    //Orbital gradients
+    
+
+    //Check convergence, if not, update for next iteration
+    
+
+    //End orbital loop    
+
     return 0.0;
 }
 

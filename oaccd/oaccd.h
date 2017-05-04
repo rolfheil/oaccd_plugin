@@ -30,15 +30,14 @@
 #ifndef oaccd_h
 #define oaccd_h
 
+#include "defines.h"
 #include "psi4/psi4-dec.h"
-#include "psi4/libtrans/integraltransform.h"
 #include "psi4/libparallel/parallel.h"
 #include "psi4/liboptions/liboptions.h"
 #include "psi4/libmints/wavefunction.h"
 #include "psi4/libmints/vector.h"
 #include "psi4/libmints/matrix.h"
-#include "psi4/libdpd/dpd.h"
-#include "psi4/libqt/qt.h"
+#include "psi4/libtrans/integraltransform.h"
 
 using namespace std;
 
@@ -53,21 +52,35 @@ public:
     double compute_energy();
 
 private:
-    Dimension virtpi_;
+
     void common_init();
 
     void int_trans_rhf();
+    void f_denominator();
+    double mp2_energy_rhf();
+
+    //Energies etc.
+    double oaccd_energy;
+    double mp2_energy;
 
     //Various option variables
     string reference;
 
     //Library stuff
-    IntegralTransform *ints;
+    class IntegralTransform *ints;
 
     //Tensors
     SharedMatrix MOoeIntsA;
     SharedMatrix FockA;
 
+    //Fock diagonals
+    SharedVector FDiaOccA;
+    SharedVector FDiaVirA;
+
+    //Dimension stuff
+    Dimension virtpi_;
+    Dimension adoccpi_;
+    Dimension avirtpi_;
 };
 
 

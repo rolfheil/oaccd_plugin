@@ -28,6 +28,9 @@
  */
 
 #include "oaccd.h"
+#include "psi4/libqt/qt.h"
+#include "psi4/libdpd/dpd.h"
+#include "psi4/libpsio/psio.hpp"
 
 using namespace std;
 
@@ -51,14 +54,8 @@ void Oaccd::int_trans_rhf(){
     //Transform to (OO|OO), must figure out how to do it when left and right is different
     timer_on("Trans (OO|OO)");
     ints->transform_tei(MOSpace::occ, MOSpace::occ, MOSpace::occ, MOSpace::occ, 
-                        IntegralTransform::MakeAndKeep);
+                        IntegralTransform::MakeAndNuke);
     timer_off("Trans (OO|OO)");
-
-    //Transform to (OO|VV)
-    timer_on("Trans (OO|VV)");
-    ints->transform_tei(MOSpace::occ, MOSpace::occ, MOSpace::vir, MOSpace::vir, 
-                        IntegralTransform::ReadAndNuke);
-    timer_off("Trans (OO|VV)");
 
     //Transform to (OV|OV)
     timer_on("Trans (OV|OV)");
@@ -72,12 +69,76 @@ void Oaccd::int_trans_rhf(){
                         IntegralTransform::MakeAndNuke);
     timer_off("Trans (VO|VO)");
 
+    //Transform to (OO|VV)
+    timer_on("Trans (VV|OO)");
+    ints->transform_tei(MOSpace::vir, MOSpace::vir, MOSpace::occ, MOSpace::occ, 
+                        IntegralTransform::MakeAndKeep);
+    timer_off("Trans (VV|OO)");
+
     //Transform to (VV|VV)
     timer_on("Trans (VV|VV)");
     ints->transform_tei(MOSpace::vir, MOSpace::vir, MOSpace::vir, MOSpace::vir, 
-                        IntegralTransform::MakeAndNuke);
+                        IntegralTransform::ReadAndNuke);
     timer_off("Trans (VV|VV)");
 
+    //Probably want to sort the integrals in some order here
+     dpdbuf4 K, G;
+
+     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
+
+ //    timer_on("Sort chem -> phys");
+     timer_on("Sort (OO|OO) -> <OO|OO>");
+     // (OO|OO) -> <OO|OO>
+     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[O,O]"),
+                  ID("[O>=O]+"), ID("[O>=O]+"), 0, "MO Ints (OO|OO)");
+     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[O,O]"), 
+                            "MO Ints <OO|OO>");
+     global_dpd_->buf4_close(&K);
+     timer_off("Sort (OO|OO) -> <OO|OO>");
+
+    f_denominator();
+    
 }
 
+void Oaccd::f_denominator(){
+
+    //Make a four index buffer
+    dpdbuf4 D;
+
+    //Transform the Fock matrix to MO basis
+    FockA = Fa_;
+    FockA->transform(Ca_);
+    FockA->print();
+
+    for(int h = 0; h < nirrep_; ++h){
+        for(int i = frzcpi_[h]; i < doccpi_[h]; i++){
+            FDiaOccA->set(h,i - frzcpi_[h],FockA->get(h,i,i));
+        }
+        for(int a = doccpi_[h]; a < doccpi_[h] + avirtpi_[h]; a++){
+            FDiaVirA->set(h,a - doccpi_[h],FockA->get(h,a,a));
+        }
+    }
+//    outfile->Printf("\n lalala %f \n", FDiaOccA[4]);
+    FDiaOccA->print();
+    FDiaVirA->print();
+
+    //Build the denominators
+    global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
+                  ID("[O,O]"), ID("[V,V]"), 0, "D <OO|VV>");
+    
+    for(int h = 0; h < nirrep_; ++h){
+        global_dpd_->buf4_mat_irrep_init(&D, h);
+        for(int row = 0;row < D.params->rowtot[h]; ++row){
+            int i = D.params->roworb[h][row][0];
+            int j = D.params->roworb[h][row][1];
+            for(int col = 0; col < D.params->coltot[h]; ++col){
+                int a = D.params->colorb[h][col][0];
+                int b = D.params->colorb[h][col][1];
+            }
+        }
+        global_dpd_->buf4_mat_irrep_close(&D, h);
+    }
+    global_dpd_->buf4_close(&D);
+
+}
 }} // End namespaces
