@@ -29,11 +29,13 @@
 
 /*Calculate the CCD T2 amlplitudes and return the energy.
  * Do not assume diagonal Fock matrix or orthogonal orbitals.
- * Basically use the standard CCSD algorithm for T1-transformed integals*/
+ * Basically use the standard CCSD algorithm for T1-transformed integals
+ * PS. Use the naming convention from Helgaker et al. for the different terms*/
 
 #include "oaccd.h"
 #include "psi4/libdpd/dpd.h"
 #include "psi4/libpsio/psio.hpp"
+#include "psi4/libqt/qt.h"
 
 using namespace std;
 
@@ -42,16 +44,21 @@ namespace psi{ namespace oaccd {
 
 double Oaccd::ccd_energy_rhf(){
 
-    outfile->Printf("Hej hej hallo");
+    outfile->Printf("Hej hej hallo\n");
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
     psio_->open(PSIF_CC_TAMPS, PSIO_OPEN_OLD);
+    psio_->open(PSIF_CC_HBAR, PSIO_OPEN_NEW);
 
     dpdbuf4 I;  //Integrals
     dpdbuf4 T2old; //old T2 amplitudes
     dpdbuf4 T2; //T2 amplitudes
+    dpdbuf4 W; //Intermediates
+
+    //A2 term: t^ab_ij += (ai|bj) + Sum_cd t^cd_ij*(ac|bd), the most expensive 
 
     //Open a buffer for the aibj integrals
+    timer_on("A2");
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "g_aibj <OO|VV>");
 
@@ -70,22 +77,49 @@ double Oaccd::ccd_energy_rhf(){
 
     //Open a buffer for the abcd integrals
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[V,V]"),
-                  ID("[V,V]"), ID("[V,V]"), 0, "g_acbd <OO|VV>");
+                  ID("[V,V]"), ID("[V,V]"), 0, "g_acbd <VV|VV>");
 
-    //Contract old amplitudes with integrals t^ab_ij += Sum_cd t^cd_ij*(ac|bd)
+    //Contract old amplitudes with integrals
     global_dpd_->contract444(&T2old,&I,&T2,0,0,1.0,1.0);
 
-    //Open a buffer for the new amplitudes
-//    global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
-//                  ID("[O,O]"), ID("[V,V]"), 0, "Tijab");
-
-
-    //Get old amplitudes from previous iteration or MP2
-//    global_dpd_->buf4_init(&T2old, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
-//                  ID("[O,O]"), ID("[V,V]"), 0, "Tijab (old)");
-
-//    global_dpd_->buf4_close(&T2old);
+    global_dpd_->buf4_close(&I);
+    global_dpd_->buf4_close(&T2);
+    timer_off("A2");
     
+    //B2 term: t^ab_ij += Sum_kl t^ab_kl((ki|lj) + Sum_cd t^cd_ij*(kc|ld))
+
+    outfile->Printf("Hej hej hallo\n");
+
+    timer_on("B2");
+
+    global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
+                  ID("[O,O]"), ID("[V,V]"), 0, "g_iajb <OO|VV>");
+
+    //Open an intermediate buffer
+    global_dpd_->buf4_init(&W, PSIF_CC_HBAR, 0, ID("[O,O]"), ID("[O,O]"),
+                  ID("[O,O]"), ID("[O,O]"), 0, "W temps");
+
+    //Contract old amplitudes with integrals
+    global_dpd_->contract444(&T2old,&I,&W,0,0,1.0,0.0);
+
+    global_dpd_->buf4_close(&I);
+
+    //Read in g_ikjl integrals and add
+    global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[O,O]"),
+                  ID("[O,O]"), ID("[O,O]"), 0, "g_ikjl <OO|OO>");
+    global_dpd_->buf4_axpy(&I, &W, 1.0);
+    global_dpd_->buf4_close(&I);
+
+    //Contract again t^ab_ij += Sum_kl t^ab_kl*W_kilj
+    global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
+                  ID("[O,O]"), ID("[V,V]"), 0, "Tijab");
+    global_dpd_->contract444(&W,&T2old,&T2,1,1,1.0,1.0);
+
+    timer_off("B2");
+
+    outfile->Printf("Hej hej hallo\n");
+
+    psio_->close(PSIF_CC_HBAR,false);
     psio_->close(PSIF_CC_TAMPS,true);
     psio_->close(PSIF_LIBTRANS_DPD,true);
 
