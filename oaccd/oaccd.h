@@ -58,10 +58,12 @@ private:
     void int_trans_rhf();
     void f_denominator();
     double mp2_energy_rhf();
+    double ccd_energy_rhf();
 
     //Energies etc.
     double oaccd_energy;
     double mp2_energy;
+    double ccd_energy;
 
     //Various option variables
     string reference;

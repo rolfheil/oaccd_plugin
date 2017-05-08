@@ -112,14 +112,13 @@ double Oaccd::compute_energy()
     dpd_set_default(ints->get_dpd_id());
 
     int_trans_rhf();
-                   
-//    Fa_->print();
-//    FockA = Fa_;
-//    FockA->transform(Ca_);
-//    FockA->print();
+    mp2_energy = mp2_energy_rhf();
+    ccd_energy = ccd_energy_rhf();
 
-    //Generete a start guess. MP2? Might be bad for difficult cases
-    
+    outfile->Printf("\nMP2 energy:  %15.9f \n", mp2_energy);
+    outfile->Printf("Total energy:  %15.9f \n", mp2_energy + energy_);
+                   
+
 
     //Start orbital iteration loop here 
     
