@@ -59,6 +59,10 @@ private:
     void f_denominator();
     double mp2_energy_rhf();
     double ccd_energy_rhf();
+    void ccd_a2_rhf();
+    void ccd_b2_rhf();
+    void ccd_c2_rhf();
+    void ccd_d2_rhf();
 
     //Energies etc.
     double oaccd_energy;

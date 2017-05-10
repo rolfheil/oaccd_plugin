@@ -96,12 +96,19 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VV|VV) -> <VV|VV>");
 
+    // (VV|OO) -> (OO|VV)
+    timer_on("Sort (VV|OO) -> (OV|OV)");
+    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[O,O]"),
+                 ID("[V>=V]+"), ID("[O>=O]+"), 0, "MO Ints (VV|OO)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, sprq, ID("[O,V]"), ID("[O,V]"), "g_ijab (OV|OV)");
+    global_dpd_->buf4_close(&K);
+    timer_off("Sort (VV|OO) -> (OV|OV)");
+
     // (OV|OV) -> <OO|VV>
     timer_on("Sort (OV|OV) -> <OO|VV>");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                  ID("[O,V]"), ID("[O,V]"), 0, "MO Ints (OV|OV)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[V,V]"), 
-                           "g_iajb <OO|VV>");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[V,V]"), "g_iajb <OO|VV>");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (OV|OV) -> <OO|VV>");
 

@@ -53,12 +53,12 @@ double Oaccd::mp2_energy_rhf(){
     //Get the integrals and copy into T2 buffer
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "g_iajb <OO|VV>");
-    global_dpd_->buf4_copy(&D, PSIF_CC_TAMPS, "Tijab (old)");
+    global_dpd_->buf4_copy(&D, PSIF_CC_TAMPS, "T ijab");
     global_dpd_->buf4_close(&D);
 
     //Get integrals and denominators
     global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0,  "Tijab (old)");
+                  ID("[O,O]"), ID("[V,V]"), 0,  "T ijab");
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "D <OO|VV>");
     //Direct product
