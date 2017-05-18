@@ -63,7 +63,7 @@ void Oaccd::int_trans_rhf(){
                         IntegralTransform::MakeAndNuke);
     timer_off("Trans (OV|OV)");
 
-    //Transform to (OO|VV)
+    //Transform to (VV|OO)
     timer_on("Trans (VV|OO)");
     ints->transform_tei(MOSpace::vir, MOSpace::vir, MOSpace::occ, MOSpace::occ, 
                         IntegralTransform::MakeAndKeep);
@@ -75,78 +75,73 @@ void Oaccd::int_trans_rhf(){
                         IntegralTransform::ReadAndNuke);
     timer_off("Trans (VV|VV)");
 
-    //DPD needs both contracted indices in either row or column, so sort to 
-    //physics notation
+    //DPD needs both contracted indices in either row or column, so sort the integrals. 
+    //In biorthogonal basis,, (VO|VO) =/= (OV|OV)
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
-    // (OO|OO) -> <OO|OO>
-    timer_on("Sort (OO|OO) -> <OO|OO>");
+    // (i,j,k,l) -> (i,k,j,l) ->
+    timer_on("Sort (OO|OO) (i,j,k,l) -> (i,k,j,l)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[O,O]"),
                  ID("[O>=O]+"), ID("[O>=O]+"), 0, "MO Ints (OO|OO)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[O,O]"), "g_ikjl <OO|OO>");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[O,O]"), "(OO|OO) (i,k,j,l)");
     global_dpd_->buf4_close(&K);
-    timer_off("Sort (OO|OO) -> <OO|OO>");
+    timer_off("Sort (OO|OO) (i,j,k,l) -> (i,k,j,l)");
 
-    // (VV|VV) -> <VV|VV>
-    timer_on("Sort (VV|VV) -> <VV|VV>");
+
+    // (a,b,c,d) -> (a,c,b,d)
+    timer_on("Sort (VV|VV) (a,b,c,d) -> (a,c,b,d)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[V,V]"),
                  ID("[V>=V]+"), ID("[V>=V]+"), 0, "MO Ints (VV|VV)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[V,V]"), ID("[V,V]"), "g_acbd <VV|VV>");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[V,V]"), ID("[V,V]"), "(VV|VV) (a,c,b,d)");
     global_dpd_->buf4_close(&K);
-    timer_off("Sort (VV|VV) -> <VV|VV>");
+    timer_off("Sort (VV|VV) (a,b,c,d) -> (a,c,b,d)");
 
-    // (VV|OO) -> (OO|VV)
-    timer_on("Sort (VV|OO) -> (OV|OV)");
+
+    // (a,b,i,j) -> (i,b,j,a)
+    timer_on("Sort (VV|OO) (a,b,i,j) -> (i,b,j,a)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[O,O]"),
                  ID("[V>=V]+"), ID("[O>=O]+"), 0, "MO Ints (VV|OO)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, sprq, ID("[O,V]"), ID("[O,V]"), "g_ijab (OV|OV)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, sprq, ID("[O,V]"), ID("[O,V]"), "(VV|OO) (j,a,i,b)");
     global_dpd_->buf4_close(&K);
-    timer_off("Sort (VV|OO) -> (OV|OV)");
+    timer_off("Sort (VV|OO) (a,b,i,j) -> (i,b,j,a)");
+
 
     // (OV|OV) -> <OO|VV>
-    timer_on("Sort (OV|OV) -> <OO|VV>");
+    timer_on("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                  ID("[O,V]"), ID("[O,V]"), 0, "MO Ints (OV|OV)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[V,V]"), "g_iajb <OO|VV>");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[V,V]"), "(OV|OV) (i,j,a,b)");
+    timer_off("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
+
+
+    //(VO|VO) the same as (OV|OV) for the time being
+    timer_on("Sort (VO|VO) (i,a,j,b) -> (i,j,a,b)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
+    timer_off("Sort (VO|VO) (i,a,j,b) -> (i,j,a,b)");
+
+
+    //We need (VO|OV) as well
+    timer_on("Copy (VO|OV) (i,a,j,b) -> (i,a,j,b)");
+    global_dpd_->buf4_copy(&K, PSIF_LIBTRANS_DPD, "(VO|OV) (i,a,j,b)");
     global_dpd_->buf4_close(&K);
-    timer_off("Sort (OV|OV) -> <OO|VV>");
+    timer_off("Copy (VO|OV) (i,a,j,b) -> (i,a,j,b)");
 
-    //Construct L_iajb = 2g_iajb - g_ibja
-    timer_on("Construct L_iajb");
-    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                 ID("[O,O]"), ID("[V,V]"), 0, "g_iajb <OO|VV>");
 
-    //Copy to g_aibj <OO|VV>, they are the same in orthogonal basis
-    global_dpd_->buf4_copy(&K, PSIF_LIBTRANS_DPD, "g_aibj <OO|VV>");
-
-    global_dpd_->buf4_copy(&K, PSIF_LIBTRANS_DPD, "L_iajb <OO|VV>");
-    global_dpd_->buf4_close(&K);
-
-    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                 ID("[O,O]"), ID("[V,V]"), 0, "L_iajb <OO|VV>");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, pqsr, ID("[O,O]"), ID("[V,V]"), "g_ibja <OO|VV>");
-    global_dpd_->buf4_scm(&K, 2.0);
-
-    global_dpd_->buf4_init(&G, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                 ID("[O,O]"), ID("[V,V]"), 0, "g_ibja <OO|VV>");
-    global_dpd_->buf4_axpy(&G, &K, -1.0);
-
-    global_dpd_->buf4_close(&G);
-    global_dpd_->buf4_close(&K);
-    timer_off("Construct L_iajb");
-
+    //Generate the orbital energy denominators
     timer_on("F denominator");
     f_denominator();
     timer_off("F denominator");
     
+
     psio_->close(PSIF_LIBTRANS_DPD,true);
 }
 
 void Oaccd::f_denominator(){
 
-    //Make a four index buffer
+    //Buffers
     dpdbuf4 D;
+    dpdfile2 F;
 
     //Transform the Fock matrix to MO basis
     FockA = Fa_;
@@ -161,13 +156,13 @@ void Oaccd::f_denominator(){
             FDiaVirA->set(h,a - doccpi_[h],FockA->get(h,a,a));
         }
     }
-//    outfile->Printf("\n lalala %f \n", FDiaOccA[4]);
+
     FDiaOccA->print();
     FDiaVirA->print();
 
     //Build the denominators
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0, "D <OO|VV>");
+                  ID("[O,O]"), ID("[V,V]"), 0, "D (i,j,a,b)");
     
     for(int h = 0; h < nirrep_; ++h){
         global_dpd_->buf4_mat_irrep_init(&D, h);
@@ -185,6 +180,40 @@ void Oaccd::f_denominator(){
         global_dpd_->buf4_mat_irrep_close(&D, h);
     }
     global_dpd_->buf4_close(&D);
+
+    //Generate the Occupied-Occupied and Virtual-Virtual blocks
+    //of the Fock matrix and store as DPD. The Fock matrix is not 
+    //symmetric
+    
+    global_dpd_->file2_init(&F, PSIF_LIBTRANS_DPD, 0, ID('O'), ID('O'), "F OO");
+    global_dpd_->file2_mat_init(&F);
+
+    for(int h = 0; h < nirrep_; ++h){
+        for(int i = frzcpi_[h]; i < doccpi_[h]; i++){
+            for(int j = frzcpi_[h]; j < doccpi_[h]; j++){
+                F.matrix[h][i][j] = FockA->get(h,i,j);
+            }
+        }
+    }
+
+    global_dpd_->file2_mat_wrt(&F);
+    global_dpd_->file2_close(&F);
+
+    
+    //Virtual block of the Fock matrix
+    global_dpd_->file2_init(&F, PSIF_LIBTRANS_DPD, 0, ID('V'), ID('V'), "F VV");
+    global_dpd_->file2_mat_init(&F);
+
+    for(int h = 0; h < nirrep_; ++h){
+        for(int a = doccpi_[h]; a < doccpi_[h] + avirtpi_[h]; a++){
+            for(int b = doccpi_[h]; b < doccpi_[h] + avirtpi_[h]; b++){
+                F.matrix[h][a - doccpi_[h]][b - doccpi_[h]] = FockA->get(h,a,b);
+            }
+        }
+    }
+
+    global_dpd_->file2_mat_wrt(&F);
+    global_dpd_->file2_close(&F);
 
 }
 }} // End namespaces

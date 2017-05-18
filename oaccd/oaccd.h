@@ -63,6 +63,7 @@ private:
     void ccd_b2_rhf();
     void ccd_c2_rhf();
     void ccd_d2_rhf();
+    void ccd_e2_rhf();
 
     //Energies etc.
     double oaccd_energy;

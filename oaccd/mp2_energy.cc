@@ -31,6 +31,7 @@
 #include "oaccd.h"
 #include "psi4/libdpd/dpd.h"
 #include "psi4/libpsio/psio.hpp"
+#include "psi4/libqt/qt.h"
 
 using namespace std;
 
@@ -50,29 +51,63 @@ double Oaccd::mp2_energy_rhf(){
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
     psio_->open(PSIF_CC_TAMPS, PSIO_OPEN_OLD);
 
-    //Get the integrals and copy into T2 buffer
+    //Construct L_iajb = 2g_iajb - g_ibja
+    timer_on("Construct L_iajb");
+
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0, "g_iajb <OO|VV>");
-    global_dpd_->buf4_copy(&D, PSIF_CC_TAMPS, "T ijab");
+                 ID("[O,O]"), ID("[V,V]"), 0, "(OV|OV) (i,j,a,b)");
+    global_dpd_->buf4_copy(&D, PSIF_LIBTRANS_DPD, "L_pqrs");
+    global_dpd_->buf4_close(&D);
+
+    global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
+                 ID("[O,O]"), ID("[V,V]"), 0, "L_pqrs");
+    global_dpd_->buf4_sort(&D, PSIF_LIBTRANS_DPD, pqsr, ID("[O,O]"), ID("[V,V]"), "(OV|OV) temp");
+    global_dpd_->buf4_scm(&D, 2.0);
+
+    global_dpd_->buf4_init(&T2, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
+                 ID("[O,O]"), ID("[V,V]"), 0, "(OV|OV) temp");
+    global_dpd_->buf4_axpy(&T2, &D, -1.0);
+
+    global_dpd_->buf4_close(&T2);
+    global_dpd_->buf4_close(&D);
+    timer_off("Construct L_iajb");
+
+
+
+
+    //Get the integrals and copy into T2 buffer
+    timer_on("MP2 amplitudes");
+
+    global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
+                  ID("[O,O]"), ID("[V,V]"), 0, "(OV|OV) (i,j,a,b)");
+    global_dpd_->buf4_copy(&D, PSIF_CC_TAMPS, "T2");
     global_dpd_->buf4_close(&D);
 
     //Get integrals and denominators
     global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0,  "T ijab");
+                  ID("[O,O]"), ID("[V,V]"), 0,  "T2");
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0,  "D <OO|VV>");
+                  ID("[O,O]"), ID("[V,V]"), 0,  "D (i,j,a,b)");
     //Direct product
     global_dpd_->buf4_dirprd(&D, &T2);
 
-    //MP2 amplitudes now in buffer
+    //MP2 amplitudes now in T2 buffer
     global_dpd_->buf4_close(&D);
 
+    timer_off("MP2 amplitudes");
+
+
     //Energy requires L_iajb = 2g_iajb - g_ibja
+    
+    timer_on("MP2 energy");
+
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0,  "L_iajb <OO|VV>");
+                  ID("[O,O]"), ID("[V,V]"), 0,  "L_pqrs");
     double t2_energy = global_dpd_->buf4_dot(&T2, &D);
     global_dpd_->buf4_close(&D);
     global_dpd_->buf4_close(&T2);
+
+    timer_off("MP2 energy");
 
     psio_->close(PSIF_CC_TAMPS,true);
     psio_->close(PSIF_LIBTRANS_DPD,true);
