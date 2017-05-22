@@ -84,7 +84,7 @@ void Oaccd::ccd_a2_rhf(){
 
     //Open a buffer for the aibj integrals
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0, "(OV|OV) (i,j,a,b)");
+                  ID("[O,O]"), ID("[V,V]"), 0, "(VO|VO) (i,j,a,b)");
 
     //Copy integrals into amplitude buffer, first term
     global_dpd_->buf4_copy(&I, PSIF_CC_TAMPS, "Omega2");
@@ -148,7 +148,6 @@ void Oaccd::ccd_b2_rhf(){
     //W is stored as (i,j,k,l) where k and l will be contracted 
     //Sorry forinconsistent notation
     global_dpd_->contract444(&T2,&I,&W,0,0,1.0,0.0);
-
     global_dpd_->buf4_close(&I);
 
     //Read in (ij|kl) integrals and add
@@ -201,7 +200,7 @@ void Oaccd::ccd_c2_rhf(){
 
     //Sort (OV|OV) integrals from (i,j,a,b) to (i,b,j,a) order
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0, "(OVOV) (i,j,a,b)");
+                  ID("[O,O]"), ID("[V,V]"), 0, "(OV|OV) (i,j,a,b)");
     global_dpd_->buf4_sort(&I, PSIF_LIBTRANS_DPD, psqr, ID("[O,V]"), ID("[O,V]"), "(OV|OV) (i,b,j,a)");
     global_dpd_->buf4_close(&I);
 
@@ -291,7 +290,7 @@ void Oaccd::ccd_d2_rhf(){
     global_dpd_->buf4_sort(&W, PSIF_LIBTRANS_DPD, psrq, ID("[O,V]"), ID("[O,V]"), "L_pqrs");
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "L_pqrs");
-    global_dpd_->buf4_scm(&W, 2.0);
+    global_dpd_->buf4_scm(&I, 2.0);
     global_dpd_->buf4_axpy(&W, &I, -1.0);
     global_dpd_->buf4_close(&W);
 
@@ -299,11 +298,11 @@ void Oaccd::ccd_d2_rhf(){
     //T2 amplitudes in j,a,i,b order after C2 term
     global_dpd_->buf4_init(&W, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "T2");
-    global_dpd_->buf4_sort(&W, PSIF_CC_TAMPS, psrq, ID("[O,V]"), ID("[O,V]"), "u2");
+    global_dpd_->buf4_sort(&W, PSIF_CC_TAMPS, rqps, ID("[O,V]"), ID("[O,V]"), "u2");
     global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "u2");
-    global_dpd_->buf4_scm(&T2, -1.0);
-    global_dpd_->buf4_axpy(&W, &T2, 2.0);
+    global_dpd_->buf4_scm(&T2, 2.0);
+    global_dpd_->buf4_axpy(&W, &T2, -1.0);
     global_dpd_->buf4_close(&W);
 
     //Contract u and L
@@ -313,7 +312,7 @@ void Oaccd::ccd_d2_rhf(){
     global_dpd_->buf4_close(&I);
     global_dpd_->buf4_close(&T2);
 
-    //
+
     //Construct L_aijb = 2(ai|jb) - (ab|ji)
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "(VV|OO) (j,a,i,b)");
@@ -331,16 +330,12 @@ void Oaccd::ccd_d2_rhf(){
     global_dpd_->buf4_axpy(&I, &W, 1.0);
     global_dpd_->buf4_close(&I);
 
-    //Sort u to j,b,i,a order
+    //Contract intermediate and u
     global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "u2");
-    global_dpd_->buf4_sort(&T2, PSIF_CC_TAMPS, psrq, ID("[O,V]"), ID("[O,V]"), "u2");
-
-
-    //Contract intermediate and u
     global_dpd_->buf4_init(&I, PSIF_CC_HBAR, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "W OVOV2");
-    global_dpd_->contract444(&W, &T2, &I, 0, 1, 0.5, 0.0);
+    global_dpd_->contract444(&W, &T2, &I, 0, 0, 0.5, 0.0);
     global_dpd_->buf4_close(&W);
     global_dpd_->buf4_close(&T2);
 
@@ -376,7 +371,7 @@ void Oaccd::ccd_e2_rhf(){
     dpdbuf4 W;      //Intermediates, mostly
     dpdbuf4 Omega2; //Omega2
     dpdbuf4 T2;     //T2 amplitudes
-    dpdfile2 F,D;     //Two index stuff
+    dpdfile2 F,D;   //Two index stuff
 
     timer_on("E2");
     
