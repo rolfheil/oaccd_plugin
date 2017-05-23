@@ -68,6 +68,10 @@ void Oaccd::common_init()
     outfile->Printf("Irreps: %3i \n",nirrep_);
 
     reference=options_.get_str("REFERENCE");
+    cc_maxdiis_ = options_.get_int("CC_DIIS_MAX_VECS");
+    cc_mindiis_ = options_.get_int("CC_DIIS_MIN_VECS");
+
+    outfile->Printf("minddis %3i \n",cc_mindiis_);
 
     if(reference == "RHF") {//Only RHF for the time being
 
@@ -95,6 +99,8 @@ void Oaccd::common_init()
 
 double Oaccd::compute_energy()
 {
+    dpdbuf4 T2size; //T2 amplitudes
+
     //Start by getting the required integrals
 
     //Allocate integrals,must be done after constructor
@@ -111,16 +117,21 @@ double Oaccd::compute_energy()
     ints->initialize();
     dpd_set_default(ints->get_dpd_id());
 
+    //Set up DIIS manager, size is set in mp2_energy
+    t2DiisManager = new DIISManager(cc_maxdiis_, "CCD DIIS T2 amps", DIISManager::LargestError, 
+                                    DIISManager::InCore);
+
     int_trans_rhf();
     mp2_energy = mp2_energy_rhf();
 
     outfile->Printf("\nMP2 energy:  %15.9f \n", mp2_energy);
     outfile->Printf("Total energy:  %15.9f \n", mp2_energy + energy_);
                    
-    ccd_energy = ccd_omega_rhf();
+    ccd_energy = ccd_energy_rhf();
 
     outfile->Printf("\nCCD energy:  %15.9f \n", ccd_energy);
     outfile->Printf("Total energy:  %15.9f \n", ccd_energy + energy_);
+                   
                    
 
     //Start orbital iteration loop here 

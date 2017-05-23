@@ -37,6 +37,7 @@
 #include "psi4/libmints/wavefunction.h"
 #include "psi4/libmints/vector.h"
 #include "psi4/libmints/matrix.h"
+#include "psi4/libdiis/diismanager.h"
 #include "psi4/libtrans/integraltransform.h"
 
 using namespace std;
@@ -58,12 +59,14 @@ private:
     void int_trans_rhf();
     void f_denominator();
     double mp2_energy_rhf();
-    double ccd_omega_rhf();
+
+    double ccd_energy_rhf();
     void ccd_a2_rhf();
     void ccd_b2_rhf();
     void ccd_c2_rhf();
     void ccd_d2_rhf();
     void ccd_e2_rhf();
+    double ccd_update_rhf();
 
     //Energies etc.
     double oaccd_energy;
@@ -71,10 +74,13 @@ private:
     double ccd_energy;
 
     //Various option variables
+    int cc_maxdiis_;
+    int cc_mindiis_;
     string reference;
 
     //Library stuff
     class IntegralTransform *ints;
+    DIISManager *t2DiisManager;
 
     //Tensors
     SharedMatrix MOoeIntsA;

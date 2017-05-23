@@ -104,6 +104,11 @@ double Oaccd::mp2_energy_rhf(){
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "L_pqrs");
     double t2_energy = global_dpd_->buf4_dot(&T2, &D);
+
+    //Set DIIS vector sizes before we leave
+    t2DiisManager->set_error_vector_size(1,DIISEntry::DPDBuf4,&T2);
+    t2DiisManager->set_vector_size(1,DIISEntry::DPDBuf4,&T2);
+
     global_dpd_->buf4_close(&D);
     global_dpd_->buf4_close(&T2);
 
