@@ -117,8 +117,11 @@ double Oaccd::compute_energy()
     outfile->Printf("\nMP2 energy:  %15.9f \n", mp2_energy);
     outfile->Printf("Total energy:  %15.9f \n", mp2_energy + energy_);
                    
-    ccd_energy = ccd_energy_rhf();
+    ccd_energy = ccd_omega_rhf();
 
+    outfile->Printf("\nCCD energy:  %15.9f \n", ccd_energy);
+    outfile->Printf("Total energy:  %15.9f \n", ccd_energy + energy_);
+                   
 
     //Start orbital iteration loop here 
     
