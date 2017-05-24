@@ -72,6 +72,7 @@ private:
     double oaccd_energy;
     double mp2_energy;
     double ccd_energy;
+    double omega_norm;
 
     //Various option variables
     int cc_maxdiis_;
