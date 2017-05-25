@@ -66,6 +66,7 @@ private:
     void ccd_c2_rhf();
     void ccd_d2_rhf();
     void ccd_e2_rhf();
+    void ccd_L_rhf();
     double ccd_update_rhf();
 
     //Energies etc.
@@ -73,6 +74,8 @@ private:
     double mp2_energy;
     double ccd_energy;
     double omega_norm;
+    double o_convergence;
+    double e_convergence;
 
     //Various option variables
     int cc_maxdiis_;

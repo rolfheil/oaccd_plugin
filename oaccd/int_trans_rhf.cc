@@ -121,11 +121,12 @@ void Oaccd::int_trans_rhf(){
     timer_off("Sort (VO|VO) (i,a,j,b) -> (i,j,a,b)");
 
 
-    //We need (VO|OV) as well
-    timer_on("Copy (VO|OV) (i,a,j,b) -> (i,a,j,b)");
+    //We need (VO|OV) as well in L_aijb
+    timer_on("Construct L_aijb (i,a,j,b) -> (i,a,j,b)");
     global_dpd_->buf4_copy(&K, PSIF_LIBTRANS_DPD, "(VO|OV) (i,a,j,b)");
     global_dpd_->buf4_close(&K);
-    timer_off("Copy (VO|OV) (i,a,j,b) -> (i,a,j,b)");
+
+    timer_off("Construct L_aijb (i,a,j,b) -> (i,a,j,b)");
 
 
     //Generate the orbital energy denominators

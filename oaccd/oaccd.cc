@@ -71,7 +71,13 @@ void Oaccd::common_init()
     cc_maxdiis_ = options_.get_int("CC_DIIS_MAX_VECS");
     cc_mindiis_ = options_.get_int("CC_DIIS_MIN_VECS");
 
+    o_convergence = options_.get_double("R_CONVERGENCE");
+    e_convergence = options_.get_double("E_CONVERGENCE");
+
     outfile->Printf("minddis %3i \n",cc_mindiis_);
+
+    outfile->Printf("o_convergence %16.10f \n",o_convergence);
+    outfile->Printf("e_convergence %16.10f \n",e_convergence);
 
     if(reference == "RHF") {//Only RHF for the time being
 
@@ -121,6 +127,8 @@ double Oaccd::compute_energy()
     t2DiisManager = new DIISManager(cc_maxdiis_, "CCD DIIS T2 amps", DIISManager::LargestError, 
                                     DIISManager::InCore);
 
+    //Start orbital iteration loop here 
+    
     int_trans_rhf();
     mp2_energy = mp2_energy_rhf();
 
@@ -129,17 +137,10 @@ double Oaccd::compute_energy()
                    
     ccd_energy = ccd_energy_rhf();
 
-    outfile->Printf("\nCCD energy:  %15.9f \n", ccd_energy);
-    outfile->Printf("Total energy:  %15.9f \n", ccd_energy + energy_);
+    outfile->Printf("\nTotal SCF energy:  %16.10f \n", energy_);
+    outfile->Printf("Total MP2 energy:  %16.10f \n", mp2_energy + energy_);
+    outfile->Printf("Total CCD energy:  %16.10f \n", ccd_energy + energy_);
                    
-                   
-
-    //Start orbital iteration loop here 
-    
-
-    //Start DIIS CC iterations. Implement amplitude equations and figure out DIIS library
-
-    
     //Orbital gradients
     
 

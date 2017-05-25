@@ -52,6 +52,8 @@ double Oaccd::ccd_energy_rhf(){
     psio_->open(PSIF_CC_TAMPS, PSIO_OPEN_OLD);
     psio_->open(PSIF_CC_HBAR, PSIO_OPEN_NEW);
 
+   ccd_L_rhf();
+
     do{
         
         i++;
@@ -64,11 +66,15 @@ double Oaccd::ccd_energy_rhf(){
 
         ccd_d2_rhf();
 
-//        ccd_e2_rhf();
+        ccd_e2_rhf();
 
         cc_energy = ccd_update_rhf();
 
-    }while(omega_norm >= 0.00001 && i < 10);
+        outfile->Printf("\n\nCurrent iteration:  %3i \n", i);
+        outfile->Printf("Correlation energy: %15.9f \n", cc_energy);
+        outfile->Printf("Omega 2-norm:       %15.9f \n", omega_norm);
+               
+    }while(omega_norm >= 1.0e-20 && i < 1000);
 
     psio_->close(PSIF_CC_HBAR,true); //full of garbage
     psio_->close(PSIF_CC_TAMPS,true);
@@ -113,22 +119,6 @@ void Oaccd::ccd_a2_rhf(){
     global_dpd_->contract444(&T2,&I,&Omega2,0,0,1.0,1.0);
 
     global_dpd_->buf4_close(&I);
-
-    global_dpd_->buf4_sort(&Omega2, PSIF_CC_TAMPS , prqs, ID("[O,V]"), ID("[O,V]"), "Omega2 i,a,j,b");
-    global_dpd_->buf4_sort(&T2, PSIF_CC_TAMPS , prqs, ID("[O,V]"), ID("[O,V]"), "T2 i,a,j,b");
-
-    global_dpd_->buf4_close(&Omega2);
-    global_dpd_->buf4_close(&T2);
-
-    outfile->Printf("\n\nlalala A\n");
-    global_dpd_->buf4_init(&Omega2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "Omega2 i,a,j,b");
-    global_dpd_->buf4_print(&Omega2, "outfile", 1);
-
-    global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "T2 i,a,j,b");
-    outfile->Printf("\n\nlalala T in\n");
-    global_dpd_->buf4_print(&T2, "outfile", 1);
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&T2);
@@ -180,15 +170,8 @@ void Oaccd::ccd_b2_rhf(){
 
     global_dpd_->buf4_close(&W);
 
-    global_dpd_->buf4_sort(&Omega2, PSIF_CC_TAMPS , prqs, ID("[O,V]"), ID("[O,V]"), "Omega2 i,a,j,b");
-
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&T2);
-
-    outfile->Printf("\n\nlalala B\n");
-    global_dpd_->buf4_init(&Omega2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "Omega2 i,a,j,b");
-    global_dpd_->buf4_print(&Omega2, "outfile", 1);
 
     timer_off("B2");
     
@@ -274,10 +257,6 @@ void Oaccd::ccd_c2_rhf(){
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&I, &Omega2, 1.0);
 
-    outfile->Printf("\n\nlalala C\n");
-    global_dpd_->buf4_print(&Omega2, "outfile", 1);
-
-
     global_dpd_->buf4_close(&I);
     global_dpd_->buf4_close(&Omega2);
 
@@ -302,9 +281,9 @@ void Oaccd::ccd_d2_rhf(){
     //(OV|OV) sorted to i,b,j,a order in c term 
     global_dpd_->buf4_init(&W, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "(OV|OV) (i,b,j,a)");
-    global_dpd_->buf4_sort(&W, PSIF_LIBTRANS_DPD, psrq, ID("[O,V]"), ID("[O,V]"), "L_pqrs");
+    global_dpd_->buf4_sort(&W, PSIF_LIBTRANS_DPD, psrq, ID("[O,V]"), ID("[O,V]"), "L_iajb");
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "L_pqrs");
+                  ID("[O,V]"), ID("[O,V]"), 0, "L_iajb");
     global_dpd_->buf4_scm(&I, 2.0);
     global_dpd_->buf4_axpy(&W, &I, -1.0);
     global_dpd_->buf4_close(&W);
@@ -328,20 +307,9 @@ void Oaccd::ccd_d2_rhf(){
     global_dpd_->buf4_close(&T2);
 
 
-    //Construct L_aijb = 2(ai|jb) - (ab|ji)
+    //Get L_aijb and add to intermediate
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "(VV|OO) (j,a,i,b)");
-    global_dpd_->buf4_sort(&I, PSIF_LIBTRANS_DPD, rqps, ID("[O,V]"), ID("[O,V]"), "(VV|OO) (i,a,j,b)");
-    global_dpd_->buf4_close(&I);
-    global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "(VO|OV) (i,a,j,b)");
-    global_dpd_->buf4_scm(&I, 2.0);
-    global_dpd_->buf4_init(&T2, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "(VV|OO) (i,a,j,b)");
-    global_dpd_->buf4_axpy(&T2, &I, -1.0);
-    global_dpd_->buf4_close(&T2);
-
-    //Add to intermediate
+                  ID("[O,V]"), ID("[O,V]"), 0, "L_aijb (i,a,j,b)");
     global_dpd_->buf4_axpy(&I, &W, 1.0);
     global_dpd_->buf4_close(&I);
 
@@ -365,9 +333,6 @@ void Oaccd::ccd_d2_rhf(){
     global_dpd_->buf4_init(&Omega2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&W, &Omega2, 1.0);
-
-    outfile->Printf("\n\nlalala D\n");
-    global_dpd_->buf4_print(&Omega2, "outfile", 1);
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&W);
@@ -478,9 +443,6 @@ void Oaccd::ccd_e2_rhf(){
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&W, &Omega2, 1.0);
 
-    outfile->Printf("\n\nlalala E\n");
-    global_dpd_->buf4_print(&Omega2, "outfile", 1);
-
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&W);
 
@@ -504,9 +466,6 @@ double Oaccd::ccd_update_rhf(){
     global_dpd_->buf4_init(&Omgs, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0,  "Omega2");
 
-    outfile->Printf("\n\nFinal Omega\n");
-    global_dpd_->buf4_print(&Omgs, "outfile", 1);
-
     global_dpd_->buf4_sort(&Omgs, PSIF_CC_TAMPS, prqs, ID("[O,O]"), ID("[V,V]"), "Omega2");
     global_dpd_->buf4_close(&Omgs);
 
@@ -521,10 +480,7 @@ double Oaccd::ccd_update_rhf(){
     //Sort T2 to i,j,a,b order
     global_dpd_->buf4_init(&Amps, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0,  "T2");
-    global_dpd_->buf4_sort(&Amps, PSIF_CC_TAMPS, rqps, ID("[O,V]"), ID("[O,V]"), "T2");
-
-    outfile->Printf("\n\nlalala T xxx\n");
-    global_dpd_->buf4_print(&Amps, "outfile", 1);
+//    global_dpd_->buf4_sort(&Amps, PSIF_CC_TAMPS, rqps, ID("[O,V]"), ID("[O,V]"), "T2");
 
     global_dpd_->buf4_sort(&Amps, PSIF_CC_TAMPS, prqs, ID("[O,O]"), ID("[V,V]"), "T2");
     global_dpd_->buf4_close(&Amps);
@@ -537,8 +493,8 @@ double Oaccd::ccd_update_rhf(){
 
     global_dpd_->buf4_axpy(&Omgs, &Amps, 1.0);
 
-//    t2DiisManager->add_entry(2,&Omgs,&Amps);
-//    if (t2DiisManager->subspace_size() >= cc_mindiis_) t2DiisManager->extrapolate(1,&Amps);
+    t2DiisManager->add_entry(2,&Omgs,&Amps);
+    if (t2DiisManager->subspace_size() >= cc_mindiis_) t2DiisManager->extrapolate(1,&Amps);
     
     global_dpd_->buf4_sort(&Amps, PSIF_CC_TAMPS , prqs, ID("[O,V]"), ID("[O,V]"), "T2 i,a,j,b");
 
@@ -547,13 +503,11 @@ double Oaccd::ccd_update_rhf(){
 
     global_dpd_->buf4_init(&Amps, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "T2 i,a,j,b");
-    outfile->Printf("\n\nlalala T out\n");
-    global_dpd_->buf4_print(&Amps, "outfile", 1);
     global_dpd_->buf4_close(&Amps);
 
     //Sort L to i,j,a,b order
     global_dpd_->buf4_init(&Omgs, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "L_pqrs");
+                  ID("[O,V]"), ID("[O,V]"), 0, "L_iajb");
     global_dpd_->buf4_sort(&Omgs, PSIF_LIBTRANS_DPD, prqs, ID("[O,O]"), ID("[V,V]"), "L_pqrs");
     global_dpd_->buf4_close(&Omgs);
 
@@ -568,14 +522,41 @@ double Oaccd::ccd_update_rhf(){
     global_dpd_->buf4_close(&Omgs);
     global_dpd_->buf4_close(&Amps);
 
-    outfile->Printf("\n\nCurrent iteration:  %3i \n", 1);
-    outfile->Printf("Correlation energy: %15.9f \n", cc_energy);
-    outfile->Printf("Omega 2-norm:       %15.9f \n", omega_norm);
-               
 
     timer_off("Amp update");
 
     return cc_energy;
+}
+
+void Oaccd::ccd_L_rhf(){
+
+    //Construct L_pqrs = (pq|rs) - (pr|qs) need in CCD
+
+    dpdbuf4 L;     
+    dpdbuf4 G;      
+
+    //Construct L_aijb = 2(ai|jb) - (ab|ji)
+    global_dpd_->buf4_init(&G, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
+                  ID("[O,V]"), ID("[O,V]"), 0, "(VV|OO) (j,a,i,b)");
+    global_dpd_->buf4_sort(&G, PSIF_LIBTRANS_DPD, rqps, ID("[O,V]"), ID("[O,V]"), "(OV|OV) temp");
+    global_dpd_->buf4_close(&G);
+
+    global_dpd_->buf4_init(&L, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
+                  ID("[O,V]"), ID("[O,V]"), 0, "(VO|OV) (i,a,j,b)");
+    global_dpd_->buf4_copy(&L, PSIF_LIBTRANS_DPD, "L_aijb (i,a,j,b)");
+    global_dpd_->buf4_close(&L);
+
+    global_dpd_->buf4_init(&L, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
+                  ID("[O,V]"), ID("[O,V]"), 0, "L_aijb (i,a,j,b)");
+    global_dpd_->buf4_init(&G, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
+                  ID("[O,V]"), ID("[O,V]"), 0, "(OV|OV) temp");
+
+    global_dpd_->buf4_scm(&L, 2.0);
+    global_dpd_->buf4_axpy(&G, &L, -1.0);
+
+    global_dpd_->buf4_close(&L);
+    global_dpd_->buf4_close(&G);
+
 }
 
 }}//Namespaces

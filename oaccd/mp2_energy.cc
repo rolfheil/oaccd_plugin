@@ -51,16 +51,16 @@ double Oaccd::mp2_energy_rhf(){
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
     psio_->open(PSIF_CC_TAMPS, PSIO_OPEN_OLD);
 
-    //Construct L_iajb = 2g_iajb - g_ibja
+    //Construct L_iajb = 2*(ia|jb) - (ib|ja)
     timer_on("Construct L_iajb");
 
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                  ID("[O,O]"), ID("[V,V]"), 0, "(OV|OV) (i,j,a,b)");
-    global_dpd_->buf4_copy(&D, PSIF_LIBTRANS_DPD, "L_pqrs");
+    global_dpd_->buf4_copy(&D, PSIF_LIBTRANS_DPD, "L_iajb");
     global_dpd_->buf4_close(&D);
 
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                 ID("[O,O]"), ID("[V,V]"), 0, "L_pqrs");
+                 ID("[O,O]"), ID("[V,V]"), 0, "L_iajb");
     global_dpd_->buf4_sort(&D, PSIF_LIBTRANS_DPD, pqsr, ID("[O,O]"), ID("[V,V]"), "(OV|OV) temp");
     global_dpd_->buf4_scm(&D, 2.0);
 
@@ -97,12 +97,12 @@ double Oaccd::mp2_energy_rhf(){
     timer_off("MP2 amplitudes");
 
 
-    //Energy requires L_iajb = 2g_iajb - g_ibja
+    //Energy requires L_iajb = 2*(ia|jb) - (ib|ja)
     
     timer_on("MP2 energy");
 
     global_dpd_->buf4_init(&D, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
-                  ID("[O,O]"), ID("[V,V]"), 0,  "L_pqrs");
+                  ID("[O,O]"), ID("[V,V]"), 0,  "L_iajb");
     double t2_energy = global_dpd_->buf4_dot(&T2, &D);
 
     //Set DIIS vector sizes before we leave
