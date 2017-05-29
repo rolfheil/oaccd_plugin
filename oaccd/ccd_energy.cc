@@ -46,6 +46,7 @@ double Oaccd::ccd_energy_rhf(){
 
     int i = 0;
     double cc_energy = 0.0;
+    double old_energy = 0.0;
     omega_norm = 0.0;
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
@@ -57,6 +58,7 @@ double Oaccd::ccd_energy_rhf(){
     do{
         
         i++;
+        old_energy = cc_energy;
 
         ccd_a2_rhf();
 
@@ -71,10 +73,14 @@ double Oaccd::ccd_energy_rhf(){
         cc_energy = ccd_update_rhf();
 
         outfile->Printf("\n\nCurrent iteration:  %3i \n", i);
-        outfile->Printf("Correlation energy: %15.9f \n", cc_energy);
-        outfile->Printf("Omega 2-norm:       %15.9f \n", omega_norm);
+        outfile->Printf("Correlation energy: %16.10f \n", cc_energy);
+        outfile->Printf("Omega 2-norm:       %16.10f \n", omega_norm);
+        outfile->Printf("Energy change:      %16.10f \n", cc_energy - old_energy);
                
-    }while(omega_norm >= 1.0e-20 && i < 1000);
+
+    }while((omega_norm >= r_convergence || 
+           abs(old_energy - cc_energy) >= e_convergence) && 
+           i < cc_maxiter);
 
     psio_->close(PSIF_CC_HBAR,true); //full of garbage
     psio_->close(PSIF_CC_TAMPS,true);
@@ -489,12 +495,12 @@ double Oaccd::ccd_update_rhf(){
     global_dpd_->buf4_init(&Amps, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "T2");
 
-    omega_norm = global_dpd_->buf4_dot_self(&Omgs);
+    omega_norm = sqrt(global_dpd_->buf4_dot_self(&Omgs));
 
     global_dpd_->buf4_axpy(&Omgs, &Amps, 1.0);
 
     t2DiisManager->add_entry(2,&Omgs,&Amps);
-    if (t2DiisManager->subspace_size() >= cc_mindiis_) t2DiisManager->extrapolate(1,&Amps);
+    if (t2DiisManager->subspace_size() >= cc_mindiis) t2DiisManager->extrapolate(1,&Amps);
     
     global_dpd_->buf4_sort(&Amps, PSIF_CC_TAMPS , prqs, ID("[O,V]"), ID("[O,V]"), "T2 i,a,j,b");
 

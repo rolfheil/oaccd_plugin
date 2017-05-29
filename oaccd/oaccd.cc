@@ -30,6 +30,8 @@
 #include "oaccd.h"
 #include "psi4/libdpd/dpd.h"
 
+#define PI 3.14159265/4
+
 using namespace std;
 
 namespace psi{ namespace oaccd {
@@ -68,16 +70,20 @@ void Oaccd::common_init()
     outfile->Printf("Irreps: %3i \n",nirrep_);
 
     reference=options_.get_str("REFERENCE");
-    cc_maxdiis_ = options_.get_int("CC_DIIS_MAX_VECS");
-    cc_mindiis_ = options_.get_int("CC_DIIS_MIN_VECS");
+    cc_maxdiis = options_.get_int("CC_DIIS_MAX_VECS");
+    cc_mindiis = options_.get_int("CC_DIIS_MIN_VECS");
 
-    o_convergence = options_.get_double("R_CONVERGENCE");
+    r_convergence = options_.get_double("R_CONVERGENCE");
     e_convergence = options_.get_double("E_CONVERGENCE");
 
-    outfile->Printf("minddis %3i \n",cc_mindiis_);
+    cc_maxiter = options_.get_int("CC_MAXITER");
 
-    outfile->Printf("o_convergence %16.10f \n",o_convergence);
-    outfile->Printf("e_convergence %16.10f \n",e_convergence);
+    outfile->Printf("\nmindiis %3i \n",cc_mindiis);
+    outfile->Printf("maxdiis %3i \n",cc_maxdiis);
+    outfile->Printf("maxiter %3i \n",cc_maxiter);
+
+    outfile->Printf("\ne_convergence: %16.10f \n", e_convergence);
+    outfile->Printf("r_convergence: %16.10f \n", r_convergence);
 
     if(reference == "RHF") {//Only RHF for the time being
 
@@ -87,6 +93,48 @@ void Oaccd::common_init()
         FockA = std::shared_ptr<Matrix>(
         new Matrix("MO-basis alpha Fock matrix", nirrep_, nmopi_, nmopi_));
 
+        Rotation = std::shared_ptr<Matrix>(
+        new Matrix("Hacky rotation matrix", nirrep_, nmopi_, nmopi_));
+
+        XCa = std::shared_ptr<Matrix>(
+        new Matrix("Hacky coefficient matrix", nirrep_, nmopi_, nmopi_));
+
+        for(int i =0; i < nmopi_[0]; ++i){
+            for(int j =0; j < nmopi_[0]; ++j){
+
+                if(i == j){ 
+                    if(i == doccpi_[0]-2 || i == doccpi_[0]-1 || i == doccpi_[0] || i == doccpi_[0]+1){
+                        Rotation->set(0,i,j,cos(PI));
+                    } else{
+                        Rotation->set(0,i,j,1.0);
+                    }
+                } else if(j == i-1){
+                    if(i == doccpi_[0]-1 || i == doccpi_[0]+1){
+                        Rotation->set(0,i,j,sin(PI));
+                    } else{
+                        Rotation->set(0,i,j,0.0);
+                    }
+                 } else if(j == i+1){
+                    if(i == doccpi_[0]-2 || i == doccpi_[0]){
+                        Rotation->set(0,i,j,-sin(PI));
+                    } else{
+                        Rotation->set(0,i,j,0.0);
+                    }
+                } else{
+                    Rotation->set(0,i,j,0.0);
+                }
+
+            }
+        }
+        for(int h=1; h < nirrep_; ++h){
+            for(int i =0; i < nmopi_[h]; ++i){
+                Rotation->set(h,i,i,1.0);
+            }
+        }
+        Rotation->print();
+
+        XCa->gemm(false,false,1.0,Ca_,Rotation,0.0);
+
         FDiaOccA = std::shared_ptr<Vector>(        
         new Vector("Fock matrix occupied diagonal", adoccpi_));
         FDiaVirA = std::shared_ptr<Vector>(        
@@ -94,6 +142,8 @@ void Oaccd::common_init()
 
 //        FockA = Fa();
         Fa_->print();
+        Ca_->print();
+        Ca_ = XCa;
         Ca_->print();
     }
     else{
@@ -108,7 +158,7 @@ double Oaccd::compute_energy()
     dpdbuf4 T2size; //T2 amplitudes
 
     //Start by getting the required integrals
-
+    
     //Allocate integrals,must be done after constructor
     std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
     ints = new IntegralTransform(shared_from_this(), spaces,
@@ -124,7 +174,7 @@ double Oaccd::compute_energy()
     dpd_set_default(ints->get_dpd_id());
 
     //Set up DIIS manager, size is set in mp2_energy
-    t2DiisManager = new DIISManager(cc_maxdiis_, "CCD DIIS T2 amps", DIISManager::LargestError, 
+    t2DiisManager = new DIISManager(cc_maxdiis, "CCD DIIS T2 amps", DIISManager::LargestError, 
                                     DIISManager::InCore);
 
     //Start orbital iteration loop here 

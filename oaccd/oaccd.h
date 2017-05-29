@@ -37,6 +37,7 @@
 #include "psi4/libmints/wavefunction.h"
 #include "psi4/libmints/vector.h"
 #include "psi4/libmints/matrix.h"
+#include "psi4/libmints/local.h"
 #include "psi4/libdiis/diismanager.h"
 #include "psi4/libtrans/integraltransform.h"
 
@@ -74,12 +75,13 @@ private:
     double mp2_energy;
     double ccd_energy;
     double omega_norm;
-    double o_convergence;
-    double e_convergence;
 
     //Various option variables
-    int cc_maxdiis_;
-    int cc_mindiis_;
+    double r_convergence;
+    double e_convergence;
+    int cc_maxiter;
+    int cc_maxdiis;
+    int cc_mindiis;
     string reference;
 
     //Library stuff
@@ -89,6 +91,9 @@ private:
     //Tensors
     SharedMatrix MOoeIntsA;
     SharedMatrix FockA;
+
+    SharedMatrix Rotation;
+    SharedMatrix XCa;
 
     //Fock diagonals
     SharedVector FDiaOccA;
