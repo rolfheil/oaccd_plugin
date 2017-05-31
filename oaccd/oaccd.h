@@ -92,8 +92,8 @@ private:
     SharedMatrix MOoeIntsA;
     SharedMatrix FockA;
 
-    SharedMatrix Rotation;
-    SharedMatrix XCa;
+//    SharedMatrix Rotation;
+//    SharedMatrix XCa;
 
     //Fock diagonals
     SharedVector FDiaOccA;

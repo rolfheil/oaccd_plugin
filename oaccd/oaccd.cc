@@ -93,7 +93,7 @@ void Oaccd::common_init()
         FockA = std::shared_ptr<Matrix>(
         new Matrix("MO-basis alpha Fock matrix", nirrep_, nmopi_, nmopi_));
 
-        Rotation = std::shared_ptr<Matrix>(
+/*        Rotation = std::shared_ptr<Matrix>(
         new Matrix("Hacky rotation matrix", nirrep_, nmopi_, nmopi_));
 
         XCa = std::shared_ptr<Matrix>(
@@ -133,7 +133,7 @@ void Oaccd::common_init()
         }
         Rotation->print();
 
-        XCa->gemm(false,false,1.0,Ca_,Rotation,0.0);
+        XCa->gemm(false,false,1.0,Ca_,Rotation,0.0);*/
 
         FDiaOccA = std::shared_ptr<Vector>(        
         new Vector("Fock matrix occupied diagonal", adoccpi_));
@@ -143,8 +143,8 @@ void Oaccd::common_init()
 //        FockA = Fa();
         Fa_->print();
         Ca_->print();
-        Ca_ = XCa;
-        Ca_->print();
+//        Ca_ = XCa;
+//        Ca_->print();
     }
     else{
         throw PSIEXCEPTION("OACCD only implemented for RHF");
