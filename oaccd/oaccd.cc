@@ -155,7 +155,6 @@ void Oaccd::common_init()
 
 double Oaccd::compute_energy()
 {
-    dpdbuf4 T2size; //T2 amplitudes
 
     //Start by getting the required integrals
     
