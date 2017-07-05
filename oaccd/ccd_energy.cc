@@ -32,6 +32,7 @@
  * Basically use the standard CCSD algorithm for T1-transformed integals
  * PS. Use the naming convention from Helgaker et al. for the different terms*/
 
+#include <cmath>
 #include "oaccd.h"
 #include "psi4/libdpd/dpd.h"
 #include "psi4/libpsio/psio.hpp"
@@ -79,7 +80,7 @@ double Oaccd::ccd_energy_rhf(){
                
 
     }while((omega_norm >= r_convergence || 
-           abs(old_energy - cc_energy) >= e_convergence) && 
+            abs(old_energy - cc_energy) >= e_convergence) && 
            i < cc_maxiter);
 
     psio_->close(PSIF_CC_HBAR,true); //full of garbage

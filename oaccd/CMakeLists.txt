@@ -31,6 +31,6 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project(oaccd CXX)
 
-find_package(psi4 1.0 REQUIRED)
+find_package(psi4 1.1 REQUIRED)
 
 add_psi4_plugin(oaccd oaccd.h oaccd.cc int_trans_rhf.cc mp2_energy.cc ccd_energy.cc)
