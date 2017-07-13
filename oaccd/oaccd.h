@@ -27,8 +27,8 @@
  * @END LICENSE
  */
 
-#ifndef oaccd_h
-#define oaccd_h
+#ifndef OACCD_H
+#define OACCD_H
 
 #include "defines.h"
 #include "psi4/psi4-dec.h"

@@ -156,9 +156,8 @@ void Oaccd::ccd_b2_rhf(){
     global_dpd_->buf4_init(&W, PSIF_CC_HBAR, 0, ID("[O,O]"), ID("[O,O]"),
                   ID("[O,O]"), ID("[O,O]"), 0, "W OOOO");
 
-    //Contract old amplitudes with integrals
+    //Contract amplitudes with integrals
     //W is stored as (i,j,k,l) where k and l will be contracted 
-    //Sorry forinconsistent notation
     global_dpd_->contract444(&T2,&I,&W,0,0,1.0,0.0);
     global_dpd_->buf4_close(&I);
 
