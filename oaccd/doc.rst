@@ -35,8 +35,8 @@
 Theory, Usage, and Notes
 ------------------------
 
-.. codeauthor:: Psi4 Developer
-.. sectionauthor:: Psi4 Developer
+.. codeauthor:: Benedicte Ofstad and Rolf H. Myhre 
+.. sectionauthor:: Benedicte Ofstad and Rolf H. Myhre
 
 Casual documentation for this plugin goes here.
 Uncomment the ``.. comment`` for some examples.
