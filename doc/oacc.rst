@@ -27,19 +27,23 @@
 .. comment  * @END LICENSE
 .. comment  */
 
-.. include:: /autodoc_abbr_options_c.rst
-.. include:: /autodoc_abbr_options_plugins.rst
+.. .. include:: /autodoc_abbr_options_c.rst
+.. .. include:: /autodoc_abbr_options_plugins.rst
 
-.. _`sec:modulename`:
+.. _`sec:modulename`: OACC
 
-Theory, Usage, and Notes
-------------------------
+OACC
+----
 
 .. codeauthor:: Benedicte Ofstad and Rolf H. Myhre 
 .. sectionauthor:: Benedicte Ofstad and Rolf H. Myhre
 
 Casual documentation for this plugin goes here.
 Uncomment the ``.. comment`` for some examples.
+
+.. cpp:function:: double compute_energy()
+
+   Calculates OACC energy
 
 .. comment * this plugin solves :math:`H=F_A+W_A+F_B+W_B+V`
 .. comment * reference to keyword |globals__docc| and |oaccd__print|

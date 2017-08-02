@@ -16,3 +16,6 @@ Makefile
 #Pycache
 __pycache__
 *.pyc
+
+#docbuild
+_build
