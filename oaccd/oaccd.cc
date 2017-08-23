@@ -93,58 +93,23 @@ void Oaccd::common_init()
         FockA = std::shared_ptr<Matrix>(
         new Matrix("MO-basis alpha Fock matrix", nirrep_, nmopi_, nmopi_));
 
-/*        Rotation = std::shared_ptr<Matrix>(
-        new Matrix("Hacky rotation matrix", nirrep_, nmopi_, nmopi_));
-
-        XCa = std::shared_ptr<Matrix>(
-        new Matrix("Hacky coefficient matrix", nirrep_, nmopi_, nmopi_));
-
-        for(int i =0; i < nmopi_[0]; ++i){
-            for(int j =0; j < nmopi_[0]; ++j){
-
-                if(i == j){ 
-                    if(i == doccpi_[0]-2 || i == doccpi_[0]-1 || i == doccpi_[0] || i == doccpi_[0]+1){
-                        Rotation->set(0,i,j,cos(PI));
-                    } else{
-                        Rotation->set(0,i,j,1.0);
-                    }
-                } else if(j == i-1){
-                    if(i == doccpi_[0]-1 || i == doccpi_[0]+1){
-                        Rotation->set(0,i,j,sin(PI));
-                    } else{
-                        Rotation->set(0,i,j,0.0);
-                    }
-                 } else if(j == i+1){
-                    if(i == doccpi_[0]-2 || i == doccpi_[0]){
-                        Rotation->set(0,i,j,-sin(PI));
-                    } else{
-                        Rotation->set(0,i,j,0.0);
-                    }
-                } else{
-                    Rotation->set(0,i,j,0.0);
-                }
-
-            }
-        }
-        for(int h=1; h < nirrep_; ++h){
-            for(int i =0; i < nmopi_[h]; ++i){
-                Rotation->set(h,i,i,1.0);
-            }
-        }
-        Rotation->print();
-
-        XCa->gemm(false,false,1.0,Ca_,Rotation,0.0);*/
 
         FDiaOccA = std::shared_ptr<Vector>(        
         new Vector("Fock matrix occupied diagonal", adoccpi_));
         FDiaVirA = std::shared_ptr<Vector>(        
         new Vector("Fock matrix virtual diagonal", avirtpi_));
 
-//        FockA = Fa();
         Fa_->print();
         Ca_->print();
-//        Ca_ = XCa;
-//        Ca_->print();
+        
+        lCa = std::shared_ptr<Matrix>(
+              new Matrix(Ca_));
+        lCa->set_name("left C matrix");
+
+        rCa = std::shared_ptr<Matrix>(
+              new Matrix(Ca_));
+        rCa->set_name("right C matrix");
+
     }
     else{
         throw PSIEXCEPTION("OACCD only implemented for RHF");

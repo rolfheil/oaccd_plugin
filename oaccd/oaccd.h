@@ -92,8 +92,13 @@ private:
     SharedMatrix MOoeIntsA;
     SharedMatrix FockA;
 
-//    SharedMatrix Rotation;
-//    SharedMatrix XCa;
+    //left and right MO coeffiecent matrices alpha
+    SharedMatrix lCa;
+    SharedMatrix rCa;
+
+    //left and right MO coeffiecent matrices beta
+    SharedMatrix lCb;
+    SharedMatrix rCb;
 
     //Fock diagonals
     SharedVector FDiaOccA;

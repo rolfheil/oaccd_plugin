@@ -45,6 +45,8 @@ Uncomment the ``.. comment`` for some examples.
 
    Calculates OACC energy
 
+.. psivar:: XXX
+
 .. comment * this plugin solves :math:`H=F_A+W_A+F_B+W_B+V`
 .. comment * reference to keyword |globals__docc| and |oaccd__print|
 .. comment * returns :psivar:`CURRENT ENERGY <CURRENTENERGY>` in |kcalpermol|

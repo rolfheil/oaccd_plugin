@@ -37,15 +37,34 @@ using namespace std;
 
 namespace psi{ namespace oaccd {
 
+  /**
+   Integral transform to handle biorthogonal transformations.
+   Based on IntegralTransform class from Psi4. See this class 
+   for additional use instructions
+   */
+
 class BiortIntTransform : public IntegralTransform
 {
 public:
-    BiortIntTransform();
+    BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
+                          SpaceVec spaces,
+                          TransformationType transformationType = Restricted,
+                          OutputType outputType = DPDOnly,
+                          MOOrdering moOrdering = QTOrder,
+                          FrozenOrbitals frozenOrbitals = OccAndVir,
+                          bool initialize = true);
+
     virtual ~BiortIntTransform();
 
 private:
 
+    //Left and right MO coefficient matrices alpha
     std::shared_ptr<Matrix> lCa_;
+    std::shared_ptr<Matrix> rCa_;
+
+    //Left and right MO coefficient matrices beta
+    std::shared_ptr<Matrix> lCb_;
+    std::shared_ptr<Matrix> rCb_;
 
 };
 
