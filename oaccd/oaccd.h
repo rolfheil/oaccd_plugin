@@ -53,6 +53,14 @@ public:
 
     double compute_energy();
 
+    //Return the alpha C matrices
+    SharedMatrix lCa() const;
+    SharedMatrix rCa() const;
+
+    //Return the beta C matrices
+    SharedMatrix lCb() const;
+    SharedMatrix rCb() const;
+
 protected:
 
     void common_init();
@@ -93,12 +101,12 @@ protected:
     SharedMatrix FockA;
 
     //left and right MO coeffiecent matrices alpha
-    SharedMatrix lCa;
-    SharedMatrix rCa;
+    SharedMatrix lCa_;
+    SharedMatrix rCa_;
 
     //left and right MO coeffiecent matrices beta
-    SharedMatrix lCb;
-    SharedMatrix rCb;
+    SharedMatrix lCb_;
+    SharedMatrix rCb_;
 
     //Fock diagonals
     SharedVector FDiaOccA;

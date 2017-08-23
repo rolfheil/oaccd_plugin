@@ -102,14 +102,16 @@ void Oaccd::common_init()
         Fa_->print();
         Ca_->print();
         
-        lCa = std::shared_ptr<Matrix>(
-              new Matrix(Ca_));
-        lCa->set_name("left C matrix");
+        lCa_ = std::shared_ptr<Matrix>(
+               new Matrix(Ca_));
+        lCa_->set_name("left C matrix");
 
-        rCa = std::shared_ptr<Matrix>(
-              new Matrix(Ca_));
-        rCa->set_name("right C matrix");
+        rCa_ = std::shared_ptr<Matrix>(
+               new Matrix(Ca_));
+        rCa_->set_name("right C matrix");
 
+        lCb_ = lCa_;
+        rCb_ = rCa_;
     }
     else{
         throw PSIEXCEPTION("OACCD only implemented for RHF");
@@ -165,6 +167,52 @@ double Oaccd::compute_energy()
 
     return 0.0;
 }
+
+
+SharedMatrix Oaccd::lCa() const {
+    if (!lCa_) {
+        if (!reference_wavefunction_)
+            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+        else
+            return reference_wavefunction_->Ca();
+    }
+
+    return lCa_;
+}
+
+SharedMatrix Oaccd::rCa() const {
+    if (!rCa_) {
+        if (!reference_wavefunction_)
+            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+        else
+            return reference_wavefunction_->Ca();
+    }
+
+    return rCa_;
+}
+
+SharedMatrix Oaccd::lCb() const {
+    if (!lCb_) {
+        if (!reference_wavefunction_)
+            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+        else
+            return reference_wavefunction_->Ca();
+    }
+
+    return lCb_;
+}
+
+SharedMatrix Oaccd::rCb() const {
+    if (!rCb_) {
+        if (!reference_wavefunction_)
+            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+        else
+            return reference_wavefunction_->Ca();
+    }
+
+    return rCb_;
+}
+
 
 extern "C"
 int read_options(std::string name, Options& options)
