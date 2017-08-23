@@ -45,6 +45,7 @@ BiortIntTransform::BiortIntTransform(std::shared_ptr<Oaccd> wfn,
                                      MOOrdering moOrdering,
                                      FrozenOrbitals frozenOrbitals,
                                      bool init):
+                   lCa_(wfn->lCa()),
                    IntegralTransform(wfn,
                                      spaces,
                                      transformationType,

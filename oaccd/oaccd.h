@@ -53,7 +53,7 @@ public:
 
     double compute_energy();
 
-private:
+protected:
 
     void common_init();
 

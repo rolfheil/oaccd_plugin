@@ -56,7 +56,7 @@ public:
 
     virtual ~BiortIntTransform();
 
-private:
+protected:
 
     //Left and right MO coefficient matrices alpha
     std::shared_ptr<Matrix> lCa_;
