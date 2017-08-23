@@ -28,62 +28,30 @@
  */
 
 #include "biort_inttransform.h"
+#include "psi4/libdpd/dpd.h"
+#include "psi4/libmints/molecule.h"
+#include "psi4/libpsi4util/process.h"
+#include "psi4/libciomr/libciomr.h"
+#include "psi4/libmints/wavefunction.h"
 
 using namespace std;
 
 namespace psi{ namespace oaccd {
 
-BiortIntTransform::BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
+BiortIntTransform::BiortIntTransform(std::shared_ptr<Oaccd> wfn,
                                      SpaceVec spaces,
                                      TransformationType transformationType,
                                      OutputType outputType,
                                      MOOrdering moOrdering,
                                      FrozenOrbitals frozenOrbitals,
                                      bool init):
-            initialized_(false),
-            psio_(_default_psio_lib_),
-            wfn_(wfn),
-            transformationType_(transformationType),
-            uniqueSpaces_(spaces),
-            moOrdering_(moOrdering),
-            outputType_(outputType),
-            frozenOrbitals_(frozenOrbitals),
-            alreadyPresorted_(false),
-            dpdIntFile_(PSIF_LIBTRANS_DPD),
-            aHtIntFile_(PSIF_LIBTRANS_A_HT),
-            bHtIntFile_(PSIF_LIBTRANS_B_HT),
-            nTriSo_(0),
-            nTriMo_(0),
-            nfzc_(0),
-            nfzv_(0),
-            spaces_(0),
-            labels_(0),
-            tolerance_(1.0E-16),
-            moIntFileAA_(0),
-            moIntFileAB_(0),
-            moIntFileBB_(0),
-            myDPDNum_(1),
-            print_(1),
-            zeros_(0),
-            sosym_(0),
-            mosym_(0),
-            aQT_(0),
-            bQT_(0),
-            cacheFiles_(0),
-            cacheList_(0),
-            lCa_(wfn->lCa()),
-            rCa_(wfn->rCa()),
-            lCb_(wfn->lCb()),
-            rCb_(wfn->rCb()),
-            H_(wfn->H()),
-            keepIwlSoInts_(false),
-            keepIwlMoTpdm_(true),
-            keepDpdSoInts_(false),
-            keepDpdMoTpdm_(true),
-            keepHtInts_(true),
-            keepHtTpdm_(true),
-            tpdmAlreadyPresorted_(false),
-            soIntTEIFile_(PSIF_SO_TEI)
+                   IntegralTransform(wfn,
+                                     spaces,
+                                     transformationType,
+                                     outputType,
+                                     moOrdering,
+                                     frozenOrbitals,
+                                     init)
 {
     // Implement set/get functions to customize any of this stuff.  Delayed initialization
     // is possible in case any of these variables need to be changed before setup.
@@ -106,6 +74,24 @@ BiortIntTransform::BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
     common_initialize();
 
     if(init) initialize();
+}
+
+BiortIntTransform::~BiortIntTransform()
+{
+    if (initialized_) {
+        dpd_close(myDPDNum_);
+        free_int_matrix(cacheList_);
+        free(cacheFiles_);
+        free(zeros_);
+        free(aQT_);
+        free(aCorrToPitzer_);
+        if(transformationType_ != Restricted){
+            free(bQT_);
+            free(bCorrToPitzer_);
+        }
+    }
+    if(tpdm_buffer_)
+        delete [] tpdm_buffer_;
 }
 
 }} // End namespaces
