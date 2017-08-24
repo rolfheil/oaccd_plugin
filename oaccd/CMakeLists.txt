@@ -33,4 +33,4 @@ project(oaccd CXX)
 
 find_package(psi4 1.1 REQUIRED)
 
-add_psi4_plugin(oaccd oaccd.h oaccd.cc int_trans_rhf.cc mp2_energy.cc ccd_energy.cc biort_libtrans/biort_inttransform.h biort_libtrans/biort_inttransform.cc)
+add_psi4_plugin(oaccd oaccd.h oaccd.cc int_trans_rhf.cc mp2_energy.cc ccd_energy.cc biort_libtrans/biort_inttransform.h biort_libtrans/biort_inttransform.cc biort_libtrans/transform_tei.cc biort_libtrans/transform_tei_first_half.cc biort_libtrans/transform_tei_second_half.cc)
