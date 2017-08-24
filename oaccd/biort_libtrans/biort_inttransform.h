@@ -53,6 +53,10 @@ public:
                           MOOrdering moOrdering = QTOrder,
                           FrozenOrbitals frozenOrbitals = OccAndVir,
                           bool initialize = true);
+    
+    void transform_tei(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
+                         const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4,
+                         HalfTrans ht);
 
     virtual ~BiortIntTransform();
 

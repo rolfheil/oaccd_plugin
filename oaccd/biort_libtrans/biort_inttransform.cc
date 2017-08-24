@@ -98,5 +98,22 @@ BiortIntTransform::~BiortIntTransform()
         delete [] tpdm_buffer_;
 }
 
+void BiortIntTransform::transform_tei(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
+                                 const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4,
+                                 HalfTrans ht)
+{
+    check_initialized();
+    // Only do the first half if the "make" flag is set
+    if(ht == MakeAndKeep || ht == MakeAndNuke)
+        transform_tei_first_half(s1, s2);
+
+    if(ht == ReadAndNuke || ht == MakeAndNuke){
+        keepHtInts_ = false;
+    }else{
+        keepHtInts_ = true;
+    }
+    transform_tei_second_half(s1, s2, s3, s4);
+}
+
 }} // End namespaces
 
