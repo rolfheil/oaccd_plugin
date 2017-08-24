@@ -55,8 +55,13 @@ public:
                           bool initialize = true);
     
     void transform_tei(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
-                         const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4,
-                         HalfTrans ht);
+                          const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4,
+                          HalfTrans ht);
+
+    void transform_tei_first_half(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2);
+
+    void transform_tei_second_half(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
+                          const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4);
 
     virtual ~BiortIntTransform();
 
