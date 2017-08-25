@@ -26,7 +26,7 @@
  * @END LICENSE
  */
 
-#include "integraltransform.h"
+#include "biort_inttransform.h"
 #include "psi4/libpsio/psio.hpp"
 #include "psi4/libciomr/libciomr.h"
 #include "psi4/libiwl/iwl.hpp"
@@ -35,9 +35,9 @@
 #include <ctype.h>
 #include <stdio.h>
 #include "psi4/psifiles.h"
-#include "mospace.h"
 #define EXTERN
-#include "psi4/libdpd/dpd.gbl"
+//#include "psi4/libdpd/dpd.gbl"
+#include "psi4/libdpd/dpd.h"
 
 ;
 using namespace psi;
