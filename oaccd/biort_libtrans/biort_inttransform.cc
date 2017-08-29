@@ -38,7 +38,7 @@ using namespace std;
 
 namespace psi{ namespace oaccd {
 
-BiortIntTransform::BiortIntTransform(std::shared_ptr<Oaccd> wfn,
+BiortIntTransform::BiortIntTransform(std::shared_ptr<biortwfn::Biortwfn> wfn,
                                      SpaceVec spaces,
                                      TransformationType transformationType,
                                      OutputType outputType,

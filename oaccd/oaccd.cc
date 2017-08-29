@@ -30,8 +30,6 @@
 #include "oaccd.h"
 #include "psi4/libdpd/dpd.h"
 
-#define PI 3.14159265/4
-
 using namespace std;
 
 namespace psi{ namespace oaccd {
@@ -41,7 +39,7 @@ namespace psi{ namespace oaccd {
 //This is similar to the CCSD and OCC stuff in Psi4
 
 Oaccd::Oaccd(SharedWavefunction ref_wfn, Options& options)
-    : Wavefunction(options)
+    : Biortwfn(options)
 {
     // Shallow copy ref_wfn data into this wavefunction
     shallow_copy(ref_wfn);
@@ -167,52 +165,6 @@ double Oaccd::compute_energy()
 
     return 0.0;
 }
-
-
-SharedMatrix Oaccd::lCa() const {
-    if (!lCa_) {
-        if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
-        else
-            return reference_wavefunction_->Ca();
-    }
-
-    return lCa_;
-}
-
-SharedMatrix Oaccd::rCa() const {
-    if (!rCa_) {
-        if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
-        else
-            return reference_wavefunction_->Ca();
-    }
-
-    return rCa_;
-}
-
-SharedMatrix Oaccd::lCb() const {
-    if (!lCb_) {
-        if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
-        else
-            return reference_wavefunction_->Ca();
-    }
-
-    return lCb_;
-}
-
-SharedMatrix Oaccd::rCb() const {
-    if (!rCb_) {
-        if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
-        else
-            return reference_wavefunction_->Ca();
-    }
-
-    return rCb_;
-}
-
 
 extern "C"
 int read_options(std::string name, Options& options)

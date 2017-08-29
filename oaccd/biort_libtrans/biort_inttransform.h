@@ -30,7 +30,7 @@
 #ifndef BIORTINTTRANS_H
 #define BIORTINTTRANS_H
 
-//#include "../oaccd.h"
+#include "../biort_wfn/biortwfn.h"
 #include "psi4/libtrans/integraltransform.h"
 
 using namespace std;
@@ -46,7 +46,7 @@ namespace psi{ namespace oaccd {
 class BiortIntTransform : public IntegralTransform
 {
 public:
-    BiortIntTransform(std::shared_ptr<Oaccd> wfn,
+    BiortIntTransform(std::shared_ptr<biortwfn::Biortwfn> wfn,
                           SpaceVec spaces,
                           TransformationType transformationType = Restricted,
                           OutputType outputType = DPDOnly,

@@ -34,32 +34,24 @@
 #include "psi4/psi4-dec.h"
 #include "psi4/libpsi4util/PsiOutStream.h"
 #include "psi4/liboptions/liboptions.h"
-#include "psi4/libmints/wavefunction.h"
 #include "psi4/libmints/vector.h"
 #include "psi4/libmints/matrix.h"
 #include "psi4/libmints/local.h"
 #include "psi4/libdiis/diismanager.h"
 #include "psi4/libtrans/integraltransform.h"
+#include "biort_wfn/biortwfn.h"
 
 using namespace std;
 
 namespace psi{ namespace oaccd {
 
-class Oaccd : public Wavefunction
+class Oaccd : public biortwfn::Biortwfn
 {
 public:
     Oaccd(SharedWavefunction ref_wfn, Options& options);
     virtual ~Oaccd();
 
     double compute_energy();
-
-    //Return the alpha C matrices
-    SharedMatrix lCa() const;
-    SharedMatrix rCa() const;
-
-    //Return the beta C matrices
-    SharedMatrix lCb() const;
-    SharedMatrix rCb() const;
 
 protected:
 
@@ -99,14 +91,6 @@ protected:
     //Tensors
     SharedMatrix MOoeIntsA;
     SharedMatrix FockA;
-
-    //left and right MO coeffiecent matrices alpha
-    SharedMatrix lCa_;
-    SharedMatrix rCa_;
-
-    //left and right MO coeffiecent matrices beta
-    SharedMatrix lCb_;
-    SharedMatrix rCb_;
 
     //Fock diagonals
     SharedVector FDiaOccA;
