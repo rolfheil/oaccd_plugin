@@ -45,9 +45,10 @@
 
 using namespace psi;
 ;
+namespace psi{ namespace oaccd {
 
 void
-IntegralTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
+BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
                                              const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4)
 {
     check_initialized();
@@ -488,3 +489,4 @@ IntegralTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     // Hand DPD control back to the user
     dpd_set_default(currentActiveDPD);
 }
+}}//end namespaces

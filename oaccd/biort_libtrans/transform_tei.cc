@@ -42,6 +42,9 @@
 ;
 using namespace psi;
 
+namespace psi{ namespace oaccd {
+
+
 /**
  * Transform the two-electron integrals from the SO to the MO basis in the spaces specified
  *
@@ -51,7 +54,7 @@ using namespace psi;
  * @param s4 - the MO space for the fourth index
  */
 void
-IntegralTransform::transform_tei(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
+BiortIntTransform::transform_tei(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
                                  const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4,
                                  HalfTrans ht)
 {
@@ -67,3 +70,5 @@ IntegralTransform::transform_tei(const std::shared_ptr<MOSpace> s1, const std::s
     }
     transform_tei_second_half(s1, s2, s3, s4);
 }
+
+}}//end namespaces
