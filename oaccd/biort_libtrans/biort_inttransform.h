@@ -30,7 +30,7 @@
 #ifndef BIORTINTTRANS_H
 #define BIORTINTTRANS_H
 
-#include "../oaccd.h"
+//#include "../oaccd.h"
 #include "psi4/libtrans/integraltransform.h"
 
 using namespace std;
