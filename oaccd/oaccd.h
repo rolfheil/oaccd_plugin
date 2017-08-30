@@ -85,7 +85,7 @@ protected:
     string reference;
 
     //Library stuff
-    class BiortIntTransform *ints;
+    BiortIntTransform *ints;
     DIISManager *t2DiisManager;
 
     //Tensors

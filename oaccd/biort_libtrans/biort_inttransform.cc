@@ -32,7 +32,6 @@
 #include "psi4/libmints/molecule.h"
 #include "psi4/libpsi4util/process.h"
 #include "psi4/libciomr/libciomr.h"
-#include "psi4/libmints/wavefunction.h"
 
 using namespace std;
 
@@ -45,17 +44,17 @@ BiortIntTransform::BiortIntTransform(std::shared_ptr<biortwfn::Biortwfn> wfn,
                                      MOOrdering moOrdering,
                                      FrozenOrbitals frozenOrbitals,
                                      bool init):
-                   lCa_(wfn->lCa()),
-                   rCa_(wfn->rCa()),
-                   lCb_(wfn->lCb()),
-                   rCb_(wfn->rCb()),
-                   IntegralTransform(wfn,
-                                     spaces,
-                                     transformationType,
-                                     outputType,
-                                     moOrdering,
-                                     frozenOrbitals,
-                                     init)
+    lCa_(wfn->lCa()),
+    rCa_(wfn->rCa()),
+    lCb_(wfn->lCb()),
+    rCb_(wfn->rCb()),
+    IntegralTransform(wfn,
+                      spaces,
+                      transformationType,
+                      outputType,
+                      moOrdering,
+                      frozenOrbitals,
+                      init)
 {
     // Implement set/get functions to customize any of this stuff.  Delayed initialization
     // is possible in case any of these variables need to be changed before setup.
