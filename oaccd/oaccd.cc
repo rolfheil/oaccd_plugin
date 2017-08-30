@@ -125,7 +125,7 @@ double Oaccd::compute_energy()
     
     //Allocate integrals,must be done after constructor
     std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
-    ints = new IntegralTransform(shared_from_this(), spaces,
+    ints = new BiortIntTransform(shared_from_this(), spaces,
                IntegralTransform::Restricted,
                IntegralTransform::DPDOnly,
                IntegralTransform::QTOrder,

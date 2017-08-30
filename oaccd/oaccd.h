@@ -38,7 +38,7 @@
 #include "psi4/libmints/matrix.h"
 #include "psi4/libmints/local.h"
 #include "psi4/libdiis/diismanager.h"
-#include "psi4/libtrans/integraltransform.h"
+#include "biort_libtrans/biort_inttransform.h"
 #include "biort_wfn/biortwfn.h"
 
 using namespace std;
@@ -85,7 +85,7 @@ protected:
     string reference;
 
     //Library stuff
-    class IntegralTransform *ints;
+    class BiortIntTransform *ints;
     DIISManager *t2DiisManager;
 
     //Tensors
