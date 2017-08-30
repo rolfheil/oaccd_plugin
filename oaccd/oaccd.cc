@@ -120,17 +120,19 @@ void Oaccd::common_init()
 
 double Oaccd::compute_energy()
 {
-
     //Start by getting the required integrals
     
     //Allocate integrals,must be done after constructor
+    const bool initialize=false;
+
     std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
     ints = new BiortIntTransform(shared_from_this(), spaces,
+               lCa(), rCa(), lCb(), rCb(),
                IntegralTransform::Restricted,
                IntegralTransform::DPDOnly,
                IntegralTransform::QTOrder,
                IntegralTransform::None,
-               false);
+               initialize);
 
     ints->set_dpd_id(0);    
     ints->set_keep_dpd_so_ints(true);

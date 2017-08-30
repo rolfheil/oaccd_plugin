@@ -33,11 +33,12 @@ using namespace std;
 
 namespace psi{ namespace biortwfn {
 
-Biortwfn::Biortwfn(SharedWavefunction ref_wfn, Options& options){   
-    // Shallow copy ref_wfn data into this wavefunction                                 
-    shallow_copy(ref_wfn);:
-    common_init();                                                                      
-}
+//Biortwfn::Biortwfn(SharedWavefunction ref_wfn, Options& options)
+//        : Wavefunction(options)
+//{   
+//    // Shallow copy ref_wfn data into this wavefunction                                 
+//    shallow_copy(ref_wfn);
+//}
   
 
 SharedMatrix Biortwfn::lCa() const {

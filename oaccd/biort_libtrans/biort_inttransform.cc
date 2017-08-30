@@ -37,17 +37,21 @@ using namespace std;
 
 namespace psi{ namespace oaccd {
 
-BiortIntTransform::BiortIntTransform(std::shared_ptr<biortwfn::Biortwfn> wfn,
+BiortIntTransform::BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
                                      SpaceVec spaces,
+                                     SharedMatrix lCa,
+                                     SharedMatrix rCa,
+                                     SharedMatrix lCb,
+                                     SharedMatrix rCb,
                                      TransformationType transformationType,
                                      OutputType outputType,
                                      MOOrdering moOrdering,
                                      FrozenOrbitals frozenOrbitals,
                                      bool init):
-    lCa_(wfn->lCa()),
-    rCa_(wfn->rCa()),
-    lCb_(wfn->lCb()),
-    rCb_(wfn->rCb()),
+    lCa_(lCa),
+    rCa_(rCa),
+    lCb_(lCb),
+    rCb_(rCb),
     IntegralTransform(wfn,
                       spaces,
                       transformationType,

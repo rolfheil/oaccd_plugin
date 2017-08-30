@@ -46,8 +46,12 @@ namespace psi{ namespace oaccd {
 class BiortIntTransform : public IntegralTransform
 {
 public:
-    BiortIntTransform(std::shared_ptr<biortwfn::Biortwfn> wfn,
+    BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
                           SpaceVec spaces,
+                          SharedMatrix lCa,
+                          SharedMatrix rCa,
+                          SharedMatrix lCb,
+                          SharedMatrix rCb,
                           TransformationType transformationType = Restricted,
                           OutputType outputType = DPDOnly,
                           MOOrdering moOrdering = QTOrder,

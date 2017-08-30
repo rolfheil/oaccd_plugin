@@ -41,7 +41,7 @@ class Biortwfn : public Wavefunction
 {
 public:
 
-   Biortwfn(SharedWavefunction ref_wfn, Options& options);
+//   Biortwfn(SharedWavefunction ref_wfn, Options& options);
 
    Biortwfn(Options & options):Wavefunction(options){};
    

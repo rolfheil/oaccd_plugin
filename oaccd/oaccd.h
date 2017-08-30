@@ -49,7 +49,7 @@ class Oaccd : public biortwfn::Biortwfn
 {
 public:
     Oaccd(SharedWavefunction ref_wfn, Options& options);
-    virtual ~Oaccd();
+    ~Oaccd();
 
     double compute_energy();
 
