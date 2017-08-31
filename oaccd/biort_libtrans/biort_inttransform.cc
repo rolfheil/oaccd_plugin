@@ -29,6 +29,7 @@
 
 #include "biort_inttransform.h"
 #include "psi4/libdpd/dpd.h"
+#include "psi4/libqt/qt.h"
 #include "psi4/libmints/molecule.h"
 #include "psi4/libpsi4util/process.h"
 #include "psi4/libciomr/libciomr.h"
@@ -83,6 +84,102 @@ BiortIntTransform::BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
     common_initialize();
 
     if(init) initialize();
+}
+
+/**
+ * Sets up the DPD buffers and performs semicanonicalization, if necessary.
+ */
+void BiortIntTransform::initialize()
+{
+    print_         = Process::environment.options.get_int("PRINT");
+    printTei_      = print_ > 5;
+    useIWL_        = outputType_ == IWLAndDPD || outputType_ == IWLOnly;
+    useDPD_        = outputType_ == IWLAndDPD || outputType_ == DPDOnly;
+    iwlAAIntFile_  = transformationType_ == Restricted ? PSIF_MO_TEI : PSIF_MO_AA_TEI;
+    iwlABIntFile_  = transformationType_ == Restricted ? PSIF_MO_TEI : PSIF_MO_AB_TEI;
+    iwlBBIntFile_  = transformationType_ == Restricted ? PSIF_MO_TEI : PSIF_MO_BB_TEI;
+
+    tpdm_buffer_ = 0;
+
+    aQT_ = init_int_array(nmo_);
+    if(transformationType_ == Restricted){
+        reorder_qt(clsdpi_, openpi_, frzcpi_, frzvpi_, aQT_, mopi_, nirreps_);
+        bQT_ = aQT_;
+    }else{
+        bQT_ = init_int_array(nmo_);
+        reorder_qt_uhf(clsdpi_, openpi_, frzcpi_, frzvpi_, aQT_, bQT_, mopi_, nirreps_);
+    }
+    // Set up the correlated to Pitzer arrays.  These have to include the occupied core terms, because
+    // the reference contributions are already folded into the TPDM.  However, they don't include frozen
+    // virtuals
+    aCorrToPitzer_ = init_int_array(nmo_);
+    if(transformationType_ != Restricted){
+        bCorrToPitzer_ = init_int_array(nmo_);
+    }else{
+        bCorrToPitzer_ = aCorrToPitzer_;
+    }
+
+    int nFzvFound = 0;
+    int pitzerCount = 0;
+    for(int h = 0; h < nirreps_; ++h){
+        for (int p = 0; p < mopi_[h]; p++) {
+            if (p < mopi_[h] - frzvpi_[h]) {
+                // This is active, count it
+                int q = aQT_[pitzerCount];
+                aCorrToPitzer_[q] = pitzerCount - nFzvFound;
+                if(transformationType_ != Restricted){
+                    int q = bQT_[pitzerCount];
+                    bCorrToPitzer_[q] = pitzerCount - nFzvFound;
+                }
+            }else{
+                nFzvFound++;
+            }
+            pitzerCount++;
+        }
+    }
+
+    if(print_ > 4){
+        outfile->Printf( "\tThe Alpha Pitzer to QT mapping array:\n\t\t");
+        for(int p = 0; p < nmo_; ++p)
+            outfile->Printf( "%d ", aQT_[p]);
+        outfile->Printf( "\n");
+        outfile->Printf( "\tThe Beta Pitzer to QT mapping array:\n\t\t");
+        for(int p = 0; p < nmo_; ++p)
+            outfile->Printf( "%d ", bQT_[p]);
+        outfile->Printf( "\n");
+        outfile->Printf( "\tThe Alpha Correlated to Pitzer mapping array:\n\t\t");
+        for(int p = 0; p < nmo_; ++p)
+            outfile->Printf( "%d ", aCorrToPitzer_[p]);
+        outfile->Printf( "\n");
+        outfile->Printf( "\tThe Beta Correlated to Pitzer mapping array:\n\t\t");
+        for(int p = 0; p < nmo_; ++p)
+            outfile->Printf( "%d ", bCorrToPitzer_[p]);
+        outfile->Printf( "\n");
+    }
+
+    process_spaces();
+
+    // Set up the DPD library
+    // TODO implement caching of files
+    int numSpaces = spacesUsed_.size();
+    int numIndexArrays = numSpaces * (numSpaces - 1) + 5 * numSpaces;
+    cacheFiles_ = init_int_array(PSIO_MAXUNIT);
+    cacheList_  = init_int_matrix(numIndexArrays, numIndexArrays);
+    int currentActiveDPD = psi::dpd_default;
+    dpd_init(myDPDNum_, nirreps_, memory_, 0, cacheFiles_, cacheList_, NULL, numSpaces, spaceArray_);
+
+    // We have to redefine the MO coefficients for a UHF-like treatment
+    if(transformationType_ == SemiCanonical){
+        throw PSIEXCEPTION("Semicanonical is deprecated in Libtrans. Please pre-semicanonicalize before passing to libtrans.");
+        //wfn_->semicanonicalize();
+        Cb_ = wfn_->Cb();
+    }
+    process_eigenvectors();
+
+    // Return DPD control to the user
+    dpd_set_default(currentActiveDPD);
+
+    initialized_ = true;
 }
 
 BiortIntTransform::~BiortIntTransform()

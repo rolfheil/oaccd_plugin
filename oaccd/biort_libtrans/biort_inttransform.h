@@ -58,6 +58,8 @@ public:
                           FrozenOrbitals frozenOrbitals = OccAndVir,
                           bool initialize = true);
     
+    void initialize();
+
     void transform_tei(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
                           const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4,
                           HalfTrans ht);
@@ -79,6 +81,17 @@ protected:
     std::shared_ptr<Matrix> lCb_;
     std::shared_ptr<Matrix> rCb_;
 
+    // The alpha MO coefficients for all unique spaces needed
+    std::map<char, SharedMatrix> laMOCoefficients_;
+    // The alpha MO coefficients for all unique spaces needed
+    std::map<char, SharedMatrix> raMOCoefficients_;
+
+    // The beta MO coefficients for all unique spaces needed
+    std::map<char, SharedMatrix> lbMOCoefficients_;
+    // The beta MO coefficients for all unique spaces needed
+    std::map<char, SharedMatrix> rbMOCoefficients_;
+
+    void process_eigenvectors();
 };
 
 }} // End namespaces
