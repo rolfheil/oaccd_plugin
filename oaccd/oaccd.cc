@@ -136,6 +136,9 @@ double Oaccd::compute_energy()
 
     ints->set_dpd_id(0);    
     ints->set_keep_dpd_so_ints(true);
+
+    outfile->Printf("\n Swarm here \n\n");
+
     ints->initialize();
     dpd_set_default(ints->get_dpd_id());
 
