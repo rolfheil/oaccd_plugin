@@ -45,6 +45,33 @@
 
 namespace psi{ namespace oaccd {
 
+
+/**
+ * Re-reads the MO coeffiecients from the checkpoint file and sets up
+ * the computation.  For default spaces, it is sufficient to call this.  For
+ * custom MOSpaces, the MOSpace objects' MO coefficients should be updated first.
+ * All one-electron integrals are generate in the new basis, including the Fock matrix.
+ */
+void BiortIntTransform::update_orbitals()
+{
+    if(transformationType_ == SemiCanonical){
+        throw FeatureNotImplemented("Libtrans", " update of semicanonical orbitals",
+                                    __FILE__, __LINE__);
+    }
+    process_eigenvectors();
+    generate_oei();
+}
+/**
+ * Sets the orbital matrix, but touches nothing else. This is used for a MCSCF wavefunction
+ * and is a bit of a hack, use at your own risk.
+**/
+void BiortIntTransform::set_orbitals(SharedMatrix C)
+{
+    Ca_ = C->clone();
+    Cb_ = Ca_;
+    process_eigenvectors();
+}
+
 void BiortIntTransform::process_eigenvectors()
 {
     std::vector<std::shared_ptr<MOSpace> >::const_iterator space;
