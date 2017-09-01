@@ -228,10 +228,10 @@ void BiortIntTransform::process_eigenvectors()
         if(transformationType_ == Restricted) lCb = lCa;
         if(transformationType_ == Restricted) rCb = rCa;
 
-        aMOCoefficients_[moSpace->label()] = lCa;
-        aMOCoefficients_[moSpace->label()] = rCa;
-        bMOCoefficients_[moSpace->label()] = lCb;
-        bMOCoefficients_[moSpace->label()] = rCb;
+        laMOCoefficients_[moSpace->label()] = lCa;
+        raMOCoefficients_[moSpace->label()] = rCa;
+        lbMOCoefficients_[moSpace->label()] = lCb;
+        rbMOCoefficients_[moSpace->label()] = rCb;
 
         if(print_ > 5){
             outfile->Printf( "Orbitals for space %c:-\n",moSpace->label());
