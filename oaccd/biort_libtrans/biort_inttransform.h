@@ -69,7 +69,7 @@ public:
     void transform_tei_second_half(const std::shared_ptr<MOSpace> s1, const std::shared_ptr<MOSpace> s2,
                           const std::shared_ptr<MOSpace> s3, const std::shared_ptr<MOSpace> s4);
 
-    void set_orbitals(SharedMatrix C);
+    void set_orbitals(SharedMatrix lC, SharedMatrix rC);
 
     void update_orbitals();   
 
