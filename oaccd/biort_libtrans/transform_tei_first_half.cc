@@ -57,6 +57,8 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
 
     char *label = new char[100];
 
+    outfile->Printf( "\t Inside tei_first_half \n");
+
     // Grab the transformation coefficients
     SharedMatrix c1a = laMOCoefficients_[s1->label()];
     SharedMatrix c1b = lbMOCoefficients_[s1->label()];
