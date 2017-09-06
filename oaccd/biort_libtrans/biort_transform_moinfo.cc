@@ -139,13 +139,14 @@ void BiortIntTransform::process_eigenvectors()
             // This is the virtual space
             if(transformationType_ == Restricted){
                 // Take the true virtual orbitals, and then append the SOCC orbitals
-                std::vector<SharedMatrix> virandsoc;
-                virandsoc.push_back(lCa_->get_block({zero,sopi_},{nalphapi_,nalphapi_ + avir}));
-                virandsoc.push_back(rCa_->get_block({zero,sopi_},{nalphapi_,nalphapi_ + avir}));
-                virandsoc.push_back(lCa_->get_block({zero,sopi_},{clsdpi_,clsdpi_ + openpi_}));
-                virandsoc.push_back(rCa_->get_block({zero,sopi_},{clsdpi_,clsdpi_ + openpi_}));
-                lCa = Matrix::horzcat(virandsoc);
-                rCa = Matrix::horzcat(virandsoc);
+                std::vector<SharedMatrix> lvirandsoc;
+                std::vector<SharedMatrix> rvirandsoc;
+                lvirandsoc.push_back(lCa_->get_block({zero,sopi_},{nalphapi_,nalphapi_ + avir}));
+                rvirandsoc.push_back(rCa_->get_block({zero,sopi_},{nalphapi_,nalphapi_ + avir}));
+                lvirandsoc.push_back(lCa_->get_block({zero,sopi_},{clsdpi_,clsdpi_ + openpi_}));
+                rvirandsoc.push_back(rCa_->get_block({zero,sopi_},{clsdpi_,clsdpi_ + openpi_}));
+                lCa = Matrix::horzcat(lvirandsoc);
+                rCa = Matrix::horzcat(rvirandsoc);
                 lCa->set_name("Left alpha virtual orbitals");
                 rCa->set_name("Right alpha virtual orbitals");
             }else{

@@ -84,6 +84,7 @@ BiortIntTransform::BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
     common_initialize();
 
     if(init) initialize();
+
 }
 
 /**

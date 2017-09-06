@@ -59,6 +59,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
 
     outfile->Printf( "\t Inside tei_first_half \n");
 
+
     // Grab the transformation coefficients
     SharedMatrix c1a = laMOCoefficients_[s1->label()];
     SharedMatrix c1b = lbMOCoefficients_[s1->label()];
@@ -69,6 +70,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     int *bOrbsPI1 = bOrbsPI_[s1->label()];
     int *aOrbsPI2 = aOrbsPI_[s2->label()];
     int *bOrbsPI2 = bOrbsPI_[s2->label()];
+
 
     // Grab control of DPD for now, but store the active number to restore it later
     int currentActiveDPD = psi::dpd_default;

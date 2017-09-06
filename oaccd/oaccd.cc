@@ -110,6 +110,7 @@ void Oaccd::common_init()
 
         lCb_ = lCa_;
         rCb_ = rCa_;
+
     }
     else{
         throw PSIEXCEPTION("OACCD only implemented for RHF");
