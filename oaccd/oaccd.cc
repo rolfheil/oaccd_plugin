@@ -28,6 +28,7 @@
  */
 
 #include "oaccd.h"
+#include "math.h"
 #include "psi4/libdpd/dpd.h"
 
 using namespace std;
@@ -52,6 +53,10 @@ Oaccd::~Oaccd()
 
 void Oaccd::common_init()
 {
+    std::shared_ptr<Matrix> U_p;
+    std::shared_ptr<Matrix> U_m;
+    double theta = 0.5;
+
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
     virtpi_ = nsopi_ - frzcpi_ - frzvpi_ - doccpi_;
@@ -108,9 +113,60 @@ void Oaccd::common_init()
                new Matrix(Ca_));
         rCa_->set_name("right C matrix");
 
+        U_p = std::shared_ptr<Matrix>(
+               new Matrix(Ca_));
+
+        U_p->set(0.0);
+        
+        U_p->set(0,0,0,1.0);
+        U_p->set(0,3,3,1.0);
+        U_p->set(2,0,0,1.0);
+        U_p->set(3,0,0,1.0);
+        U_p->set(3,1,1,1.0);
+
+        U_p->set(0,1,1,cos(theta));
+        U_p->set(0,2,2,cos(theta));
+      
+
+        U_m = std::shared_ptr<Matrix>(
+               new Matrix(U_p));
+ 
+        U_p->set(0,1,2,-sin(theta));
+        U_p->set(0,2,1,sin(theta));
+
+        U_m->set(0,1,2,sin(theta));
+        U_m->set(0,2,1,-sin(theta));
+      
+         
+        outfile->Printf("lalala \n");
+        rCa_->print();
+
+        rCb_ = std::shared_ptr<Matrix>(
+               new Matrix(Ca_));
+        
+        rCb_->gemm(false, false, 1.0, rCa_, U_p, 0.0); 
+        rCa_->copy(rCb_); 
+
+        rCb_->gemm(false, true, 1.0, lCa_, U_m, 0.0); 
+        lCa_->copy(rCb_); 
+        
+        rCa_->print();
+        lCa_->print();
+
+        outfile->Printf("swarms \n");
+
+//testing that the product of lCa and lCb is correct 
+
+        rCb_->gemm(true, false, 1.0, Ca_, Ca_, 0.0);
+        outfile->Printf("product of lCa and rCa");
+        rCb_->print();
+
+        U_p->print();
+        U_m->print();
+        
         lCb_ = lCa_;
         rCb_ = rCa_;
-
+        Ca_ ->set(0.0);
     }
     else{
         throw PSIEXCEPTION("OACCD only implemented for RHF");
@@ -126,6 +182,9 @@ double Oaccd::compute_energy()
     //Allocate integrals,must be done after constructor
     const bool initialize=false;
 
+    outfile->Printf("\n biortint \n\n");
+    rCa_ -> print();
+
     std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
     ints = new BiortIntTransform(shared_from_this(), spaces,
                lCa(), rCa(), lCb(), rCb(),
@@ -138,7 +197,7 @@ double Oaccd::compute_energy()
     ints->set_dpd_id(0);    
     ints->set_keep_dpd_so_ints(true);
 
-    outfile->Printf("\n Swarm here \n\n");
+    outfile->Printf("\n Swarm here and now \n\n");
 
     ints->initialize();
     dpd_set_default(ints->get_dpd_id());
