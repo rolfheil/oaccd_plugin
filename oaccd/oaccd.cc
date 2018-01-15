@@ -118,11 +118,11 @@ void Oaccd::common_init()
 
         U_p->set(0.0);
         
-        U_p->set(0,0,0,1.0);
-        U_p->set(0,3,3,1.0);
-        U_p->set(2,0,0,1.0);
-        U_p->set(3,0,0,1.0);
-        U_p->set(3,1,1,1.0);
+        for(int h = 0; h < nirrep_; h++){
+                for(int i = 0; i < nmopi_[h]; i++){
+                        U_p->set(h,i,i,1.0);
+                }
+        }
 
         U_p->set(0,1,1,cos(theta));
         U_p->set(0,2,2,cos(theta));
@@ -222,11 +222,7 @@ double Oaccd::compute_energy()
     outfile->Printf("Total CCD energy:  %16.10f \n", ccd_energy + energy_);
                    
     //Orbital gradients
-    
-
-    //Check convergence, if not, update for next iteration
-    
-
+    //Check convergence, if not, update for next iteration 
     //End orbital loop    
 
     return 0.0;
