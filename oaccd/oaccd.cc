@@ -157,7 +157,8 @@ void Oaccd::common_init()
 
 //testing that the product of lCa and lCb is correct 
 
-        rCb_->gemm(true, false, 1.0, Ca_, Ca_, 0.0);
+        Ca_->print();
+        rCb_->gemm(false, true, 1.0, Ca_, Ca_, 0.0);
         outfile->Printf("product of lCa and rCa");
         rCb_->print();
 
