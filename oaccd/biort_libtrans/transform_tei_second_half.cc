@@ -111,7 +111,7 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     int braCore = DPD_ID(s1, s2, Alpha, true);
     int braDisk = DPD_ID(s1, s2, Alpha, true);
     int ketCore = DPD_ID("[n,n]");
-    int ketDisk = DPD_ID("[n>=n]+");
+    int ketDisk = DPD_ID("[n,n]");
     sprintf(label, "Half-Transformed Ints (%c%c|nn)", toupper(s1->label()), toupper(s2->label()));
     global_dpd_->buf4_init(&J, aHtIntFile_, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
     if(print_ > 5)
@@ -232,7 +232,7 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
 
         braCore = braDisk = DPD_ID(s1, s2, Alpha, true);
         ketCore = DPD_ID("[n,n]");
-        ketDisk = DPD_ID("[n>=n]+");
+        ketDisk = DPD_ID("[n,n]");
         sprintf(label, "Half-Transformed Ints (%c%c|nn)", toupper(s1->label()), toupper(s2->label()));
         global_dpd_->buf4_init(&J, aHtIntFile_, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
         if(print_ > 5)
@@ -354,7 +354,7 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
         braCore = DPD_ID(s1, s2, Beta, true);
         ketCore = DPD_ID("[n,n]");
         braDisk = DPD_ID(s1, s2, Beta, true);
-        ketDisk = DPD_ID("[n>=n]+");
+        ketDisk = DPD_ID("[n,n]");
         sprintf(label, "Half-Transformed Ints (%c%c|nn)", tolower(s1->label()), tolower(s2->label()));
         global_dpd_->buf4_init(&J, bHtIntFile_, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
         if(print_ > 5)
