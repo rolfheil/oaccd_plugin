@@ -105,7 +105,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     int braCore = DPD_ID("[n,n]");
     int ketCore = DPD_ID(s1, s2, Alpha, false);
     int braDisk = DPD_ID("[n,n]");
-    int ketDisk = DPD_ID(s1, s2, Alpha, true);
+    int ketDisk = DPD_ID(s1, s2, Alpha, false);//Changed this one.
     sprintf(label, "Half-Transformed Ints (nn|%c%c)", toupper(s1->label()), toupper(s2->label()));
     global_dpd_->buf4_init(&K, PSIF_HALFT0, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
     if(print_ > 5)
@@ -189,7 +189,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     psio_->open(aHtIntFile_, PSIO_OPEN_NEW);
 
     braCore = braDisk = DPD_ID("[n,n]");
-    ketCore = ketDisk = DPD_ID(s1, s2, Alpha, true);
+    ketCore = ketDisk = DPD_ID(s1, s2, Alpha, false); //changed this one
     sprintf(label, "Half-Transformed Ints (nn|%c%c)", toupper(s1->label()), toupper(s2->label()));
     global_dpd_->buf4_init(&K, PSIF_HALFT0, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
     if(print_ > 5)
