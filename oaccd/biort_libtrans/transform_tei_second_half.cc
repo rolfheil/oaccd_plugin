@@ -53,6 +53,7 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
 {
     check_initialized();
 
+    outfile->Printf( "\t Inside tei_second_half \n");
     bool bra_sym = s1 == s2;
     bool ket_sym = s3 == s4;
     bool bra_ket_sym = (s1 == s3) && bra_sym && ket_sym;
@@ -109,7 +110,7 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     psio_->open(aHtIntFile_, PSIO_OPEN_OLD);
 
     int braCore = DPD_ID(s1, s2, Alpha, true); //changed
-    int braDisk = DPD_ID(s1, s2, Alpha, true); //changed
+    int braDisk = DPD_ID(s1, s2, Alpha, false); //changed
     int ketCore = DPD_ID("[n,n]");
     int ketDisk = DPD_ID("[n,n]");
     sprintf(label, "Half-Transformed Ints (%c%c|nn)", toupper(s1->label()), toupper(s2->label()));
@@ -118,9 +119,9 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
         outfile->Printf( "Initializing %s, in core:(%d|%d) on disk(%d|%d)\n",
                             label, braCore, ketCore, braDisk, ketDisk);
 
-    braCore = DPD_ID(s1, s2, Alpha, false); //changed
+    braCore = DPD_ID(s1, s2, Alpha, true); 
     ketCore = DPD_ID(s3, s4, Alpha, false);
-    braDisk = DPD_ID(s1, s2, Alpha, false); //changed
+    braDisk = DPD_ID(s1, s2, Alpha, true); 
     ketDisk = DPD_ID(s3, s4, Alpha, false); //changed
     if(aaIntName_.length())
         strcpy(label, aaIntName_.c_str());
