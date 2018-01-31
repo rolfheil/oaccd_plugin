@@ -79,9 +79,13 @@ void BiortIntTransform::process_eigenvectors()
     std::vector<std::shared_ptr<MOSpace> >::const_iterator space;
 
     if(print_ > 4){
+        outfile->Printf("lCa");
         lCa_->print();
+        outfile->Printf("rCa");
         rCa_->print();
+        outfile->Printf("lCb");
         lCb_->print();
+        outfile->Printf("rCb");
         rCb_->print();
     }
 

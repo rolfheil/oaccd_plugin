@@ -44,7 +44,7 @@ namespace psi{ namespace biortwfn {
 SharedMatrix Biortwfn::lCa() const {
     if (!lCa_) {
         if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+            throw PSIEXCEPTION("Biortwfn::lCa: Unable to obtain MO coefficients.");
         else
             return reference_wavefunction_->Ca();
     }
@@ -55,7 +55,7 @@ SharedMatrix Biortwfn::lCa() const {
 SharedMatrix Biortwfn::rCa() const {
     if (!rCa_) {
         if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+            throw PSIEXCEPTION("Biortwfn::rCa: Unable to obtain MO coefficients.");
         else
             return reference_wavefunction_->Ca();
     }
@@ -66,7 +66,7 @@ SharedMatrix Biortwfn::rCa() const {
 SharedMatrix Biortwfn::lCb() const {
     if (!lCb_) {
         if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+            throw PSIEXCEPTION("Biortwfn::lCb: Unable to obtain MO coefficients.");
         else
             return reference_wavefunction_->Ca();
     }
@@ -77,7 +77,7 @@ SharedMatrix Biortwfn::lCb() const {
 SharedMatrix Biortwfn::rCb() const {
     if (!rCb_) {
         if (!reference_wavefunction_)
-            throw PSIEXCEPTION("Wavefunction::Ca: Unable to obtain MO coefficients.");
+            throw PSIEXCEPTION("Biortwfn::rCb: Unable to obtain MO coefficients.");
         else
             return reference_wavefunction_->Ca();
     }

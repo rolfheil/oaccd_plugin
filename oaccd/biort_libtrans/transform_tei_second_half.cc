@@ -57,7 +57,6 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     bool bra_sym = s1 == s2;
     bool ket_sym = s3 == s4;
     bool bra_ket_sym = (s1 == s3) && bra_sym && ket_sym;
-
     char *label = new char[100];
 
     // Grab the transformation coefficients
@@ -80,6 +79,8 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     int *aIndex4 = aIndices_[s4->label()];
     int *bIndex4 = bIndices_[s4->label()];
 
+    outfile->Printf("The c3a");
+    c3a->print();
     // Grab control of DPD for now, but store the active number to restore it later
     int currentActiveDPD = psi::dpd_default;
     dpd_set_default(myDPDNum_);
@@ -103,37 +104,51 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
         }
 
     }
-
+    outfile->Printf("\nIWL is: %d \n", useIWL_);
     if(useIWL_) iwl = new IWL(psio_.get(), iwlAAIntFile_, tolerance_, 0, 0);
 
     psio_->open(dpdIntFile_, PSIO_OPEN_OLD);
     psio_->open(aHtIntFile_, PSIO_OPEN_OLD);
 
-    int braCore = DPD_ID(s1, s2, Alpha, true); //changed
-    int braDisk = DPD_ID(s1, s2, Alpha, false); //changed
-    int ketCore = DPD_ID("[n,n]");
-    int ketDisk = DPD_ID("[n,n]");
+    int braCore = DPD_ID(s1, s2, Alpha, false); 
+    int braDisk = DPD_ID(s1, s2, Alpha, false); 
+    int ketCore = DPD_ID("[n>=n]+");
+    int ketDisk = DPD_ID("[n>=n]+");
+
     sprintf(label, "Half-Transformed Ints (%c%c|nn)", toupper(s1->label()), toupper(s2->label()));
     global_dpd_->buf4_init(&J, aHtIntFile_, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
+    outfile->Printf("The K from last time, this times J");
+    global_dpd_->buf4_print(&J, "tei2xxx", 1);
+
     if(print_ > 5)
         outfile->Printf( "Initializing %s, in core:(%d|%d) on disk(%d|%d)\n",
                             label, braCore, ketCore, braDisk, ketDisk);
 
-    braCore = DPD_ID(s1, s2, Alpha, true); 
+    braCore = DPD_ID(s1, s2, Alpha, false); 
     ketCore = DPD_ID(s3, s4, Alpha, false);
-    braDisk = DPD_ID(s1, s2, Alpha, true); 
-    ketDisk = DPD_ID(s3, s4, Alpha, false); //changed
+    braDisk = DPD_ID(s1, s2, Alpha, false); 
+    ketDisk = DPD_ID(s3, s4, Alpha, false); 
     if(aaIntName_.length())
         strcpy(label, aaIntName_.c_str());
     else
         sprintf(label, "MO Ints (%c%c|%c%c)", toupper(s1->label()), toupper(s2->label()),
                                               toupper(s3->label()), toupper(s4->label()));
     global_dpd_->buf4_init(&K, dpdIntFile_, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
+
+    outfile->Printf("The K after initialization");
+    global_dpd_->buf4_print(&K, "tei3xxx", 1);
+ 
     if(print_ > 5)
         outfile->Printf( "Initializing %s, in core:(%d|%d) on disk(%d|%d)\n",
                             label, braCore, ketCore, braDisk, ketDisk);
 
     for(int h=0; h < nirreps_; h++) {
+        outfile->Printf("\n h: %d \n", h);
+        outfile->Printf("\n J coltot: %d \n", J.params->coltot[h]);
+        outfile->Printf("\n K coltot: %d \n", K.params->coltot[h]); 
+        outfile->Printf("\n J rowtot: %d \n", J.params->rowtot[h]);
+        outfile->Printf("\n K rowtot: %d \n", K.params->rowtot[h]);
+
         if(J.params->coltot[h] && J.params->rowtot[h]) {
             memFree = static_cast<size_t>(dpd_memfree() - J.params->coltot[h] - K.params->coltot[h]);
             rowsPerBucket = memFree/(2 * J.params->coltot[h]);
@@ -173,12 +188,26 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
                     int ncols = aOrbsPI4[Gs];
                     int nlinks = sopi_[Gs];
                     int rs = J.col_offset[h][Gr];
+
+                    outfile->Printf("\n h: %d, Gr: %d, Gs: %d \n",h, Gr, Gs);
+                    outfile->Printf("\n nrows: %d \n", nrows);
+                    outfile->Printf("\n ncols: %d \n", ncols);
+                    outfile->Printf("\n nlinks : %d \n", nlinks);
+                    outfile->Printf("\n rs: %d \n", rs);
+                    outfile->Printf("\n pq: %d \n", pq);
                     double **pc4a = c4a->pointer(Gs);
                     if(nrows && ncols && nlinks)
                         C_DGEMM('n', 'n', nrows, ncols, nlinks, 1.0, &J.matrix[h][pq][rs],
                                 nlinks, pc4a[0], ncols, 0.0, TMP[0], nso_);
                     //TODO else if s4->label() == MOSPACE_NIL, copy buffer...
 
+                        outfile->Printf("\nprinting tmp, ncols: %d, nrows: %d \n",ncols,nrows);
+                        for(int ixx = 0; ixx < ncols; ixx++){
+                            for(int iyy = 0; iyy < nrows; iyy++){
+                                outfile->Printf("%10.6f ", TMP[iyy][ixx]);
+                            }
+                            outfile->Printf("\n");
+                        } 
                     // Transform ( S1 S2 | n S4 ) -> ( S1 S2 | S3 S4 )
                     nrows = aOrbsPI3[Gr];
                     ncols = aOrbsPI4[Gs];
@@ -214,6 +243,9 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
         global_dpd_->buf4_mat_irrep_close_block(&J, h, rowsPerBucket);
         global_dpd_->buf4_mat_irrep_close_block(&K, h, rowsPerBucket);
     }
+    outfile->Printf("The K after the transformation is complete");
+    global_dpd_->buf4_print(&K, "tei3xxx", 1);
+
     global_dpd_->buf4_close(&K);
     global_dpd_->buf4_close(&J);
 
@@ -300,6 +332,13 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
                                     nlinks, pc4b[0], ncols, 0.0, TMP[0], nso_);
                         //TODO else if s4->label() == MOSPACE_NIL, copy buffer...
 
+                        outfile->Printf("\nprinting tmp\n");
+                        for(int ixx = 0; ixx < ncols; ixx++){
+                            for(int iyy = 0; iyy < nrows; iyy++){
+                                outfile->Printf("%10.6f ", TMP[iyy][ixx]);
+                            }
+                            outfile->Printf("\n");
+                        } 
                         // Transform ( S1 S2 | n s4 ) -> ( S1 S2 | s3 s4 )
                         nrows = bOrbsPI3[Gr];
                         ncols = bOrbsPI4[Gs];
@@ -421,7 +460,14 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
                         if(nrows && ncols && nlinks)
                             C_DGEMM('n', 'n', nrows, ncols, nlinks, 1.0, &J.matrix[h][pq][rs],
                                     nlinks, pc4b[0], ncols, 0.0, TMP[0], nso_);
-
+                         
+                        outfile->Printf("\nprinting tmp\n");
+                        for(int ixx = 0; ixx < ncols; ixx++){
+                            for(int iyy = 0; iyy < nrows; iyy++){
+                                outfile->Printf("%10.6f ", TMP[iyy][ixx]);
+                            }
+                            outfile->Printf("\n");
+                        } 
                         // Transform ( s1 s2 | n s4 ) -> ( s1 s2 | s3 s4 )
                         nrows = bOrbsPI3[Gr];
                         ncols = bOrbsPI4[Gs];
