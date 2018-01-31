@@ -66,7 +66,6 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     SharedMatrix c2a = raMOCoefficients_[s2->label()];
     SharedMatrix c2b = rbMOCoefficients_[s2->label()];
 
-    outfile->Printf("The Ca matrix in first tei");
     c1a->print();
     c2a->print();
     // And the number of orbitals per irrep
@@ -106,8 +105,6 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n>=n]+"), DPD_ID("[n,n]"),
                   DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
 
-    outfile->Printf( "\t The dpd buffer J after first buf4_init \n");
-    global_dpd_->buf4_print(&J, "After tei_first_half finished", 1); 
  
     int braCore = DPD_ID("[n>=n]+");
     int ketCore = DPD_ID(s1, s2, Alpha, false);
@@ -115,9 +112,6 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     int ketDisk = DPD_ID(s1, s2, Alpha, false);//Changed this one.
     sprintf(label, "Half-Transformed Ints (nn|%c%c)", toupper(s1->label()), toupper(s2->label()));
     global_dpd_->buf4_init(&K, PSIF_HALFT0, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
-   
-    outfile->Printf( "\t The dpd buffer K after second buf4_init \n");
-    global_dpd_->buf4_print(&K, "After tei_first_half finished", 1); 
  
     if(print_ > 5)
         outfile->Printf( "Initializing %s, in core:(%d|%d) on disk(%d|%d)\n",
@@ -184,14 +178,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
         }
         global_dpd_->buf4_mat_irrep_close_block(&J, h, rowsPerBucket);
         global_dpd_->buf4_mat_irrep_close_block(&K, h, rowsPerBucket);
-
-        outfile->Printf("inside transformation loop, J for h = ");
-        global_dpd_->buf4_print(&J, "After tei_first_half finished", 1); 
-
     }
-    outfile->Printf("K in buffer right before closing");
-    global_dpd_->buf4_print(&K, "After tei_first_half finished", 1); 
-
 
     global_dpd_->buf4_close(&K);
     global_dpd_->buf4_close(&J);
@@ -216,14 +203,8 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
                             label, braCore, ketCore, braDisk, ketDisk);
     sprintf(label, "Half-Transformed Ints (%c%c|nn)", toupper(s1->label()), toupper(s2->label()));
     
-    outfile->Printf("pre sorted K");
-    global_dpd_->buf4_print(&K, "After tei_first_half finished", 1); 
-
     global_dpd_->buf4_sort(&K, aHtIntFile_, rspq, ketCore, braCore, label);
  
-    outfile->Printf("post sorted K");
-    global_dpd_->buf4_print(&K, "After tei_first_half finished", 1); 
-
     global_dpd_->buf4_close(&K);
    
     psio_->close(aHtIntFile_, 1);
