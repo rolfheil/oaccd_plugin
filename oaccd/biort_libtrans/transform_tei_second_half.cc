@@ -112,7 +112,7 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
 
     int braCore = DPD_ID(s1, s2, Alpha, false); 
     int braDisk = DPD_ID(s1, s2, Alpha, false); 
-    int ketCore = DPD_ID("[n>=n]+");
+    int ketCore = DPD_ID("[n,n]");
     int ketDisk = DPD_ID("[n>=n]+");
 
     sprintf(label, "Half-Transformed Ints (%c%c|nn)", toupper(s1->label()), toupper(s2->label()));

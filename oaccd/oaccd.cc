@@ -55,7 +55,7 @@ void Oaccd::common_init()
 {
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
-    double theta = 0.5;
+    double theta = 0;
 
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
@@ -113,7 +113,7 @@ void Oaccd::common_init()
         rCa_ = std::shared_ptr<Matrix>(
                new Matrix(Ca_));
         rCa_->set_name("right C matrix");
-/*
+
         U_p = std::shared_ptr<Matrix>(
                new Matrix(Ca_));
 
@@ -164,7 +164,7 @@ void Oaccd::common_init()
         rCb_->print();
 
         U_p->print();
-        U_m->print();*/
+        U_m->print();
         
         lCb_ = lCa_;
         rCb_ = rCa_;
@@ -211,16 +211,16 @@ double Oaccd::compute_energy()
     //Start orbital iteration loop here 
     
     int_trans_rhf();
-  //  mp2_energy = mp2_energy_rhf();
+    mp2_energy = mp2_energy_rhf();
 
-    //outfile->Printf("\nMP2 energy:  %15.9f \n", mp2_energy);
-   // outfile->Printf("Total energy:  %15.9f \n", mp2_energy + energy_);
+    outfile->Printf("\nMP2 energy:  %15.9f \n", mp2_energy);
+    outfile->Printf("Total energy:  %15.9f \n", mp2_energy + energy_);
                    
-   // ccd_energy = ccd_energy_rhf();
+    ccd_energy = ccd_energy_rhf();
 
     outfile->Printf("\nTotal SCF energy:  %16.10f \n", energy_);
-    //outfile->Printf("Total MP2 energy:  %16.10f \n", mp2_energy + energy_);
-   // outfile->Printf("Total CCD energy:  %16.10f \n", ccd_energy + energy_);
+    outfile->Printf("Total MP2 energy:  %16.10f \n", mp2_energy + energy_);
+    outfile->Printf("Total CCD energy:  %16.10f \n", ccd_energy + energy_);
                    
     //Orbital gradients
     //Check convergence, if not, update for next iteration 

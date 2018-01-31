@@ -53,10 +53,10 @@ void Oaccd::int_trans_rhf(){
 
     //Transform to (OO|OO), must write a new transform class for NO transformations
     timer_on("Trans (OO|OO)");
-    ints->transform_tei(MOSpace::occ, MOSpace::vir, MOSpace::occ, MOSpace::vir, 
+    ints->transform_tei(MOSpace::occ, MOSpace::occ, MOSpace::occ, MOSpace::occ, 
                         IntegralTransform::MakeAndNuke);
     timer_off("Trans (OO|OO)");
-/*
+
     //Transform to (OV|OV)
     timer_on("Trans (OV|OV)");
     ints->transform_tei(MOSpace::occ, MOSpace::vir, MOSpace::occ, MOSpace::vir, 
@@ -138,7 +138,6 @@ void Oaccd::int_trans_rhf(){
     
 
     psio_->close(PSIF_LIBTRANS_DPD,true);
-*/
 }
 
 void Oaccd::f_denominator(){
