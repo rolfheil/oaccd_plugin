@@ -55,7 +55,7 @@ void Oaccd::common_init()
 {
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
-    double theta = 0;
+    double theta = 0.5;
 
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
@@ -125,18 +125,16 @@ void Oaccd::common_init()
                 }
         }
 
-        U_p->set(0,1,1,cos(theta));
-        U_p->set(0,2,2,cos(theta));
+        U_p->set(0,1,1,1.0);
+        U_p->set(0,2,2,1.0);
       
 
         U_m = std::shared_ptr<Matrix>(
                new Matrix(U_p));
  
-        U_p->set(0,1,2,-sin(theta));
-        U_p->set(0,2,1,sin(theta));
+        U_p->set(0,1,2,1.0);
 
-        U_m->set(0,1,2,sin(theta));
-        U_m->set(0,2,1,-sin(theta));
+        U_m->set(0,1,2,-1.0);
       
          
         outfile->Printf("lalala \n");

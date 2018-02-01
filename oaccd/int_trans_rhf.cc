@@ -47,7 +47,7 @@ void Oaccd::int_trans_rhf(){
     //Update one-electron orbitals etc. 
     //Coefficients from Ca_ (and Cb_) in wafunctionobject
     
-    ints->set_print(6);
+    ints->set_print(0);
     ints->update_orbitals();
     ints->set_keep_dpd_so_ints(1);
 
@@ -63,6 +63,18 @@ void Oaccd::int_trans_rhf(){
                         IntegralTransform::MakeAndNuke);
     timer_off("Trans (OV|OV)");
 
+    //Transform to (VO|VO)
+    timer_on("Trans (VO|VO)");
+    ints->transform_tei(MOSpace::vir, MOSpace::occ, MOSpace::vir, MOSpace::occ, 
+                        IntegralTransform::MakeAndKeep);
+    timer_off("Trans (VO|VO)");
+
+    //Transform to (VO|VO)
+    timer_on("Trans (VO|OV)");
+    ints->transform_tei(MOSpace::vir, MOSpace::occ, MOSpace::occ, MOSpace::vir, 
+                        IntegralTransform::MakeAndNuke);
+    timer_off("Trans (VO|OV)");
+
     //Transform to (VV|OO)
     timer_on("Trans (VV|OO)");
     ints->transform_tei(MOSpace::vir, MOSpace::vir, MOSpace::occ, MOSpace::occ, 
@@ -75,6 +87,7 @@ void Oaccd::int_trans_rhf(){
                         IntegralTransform::ReadAndNuke);
     timer_off("Trans (VV|VV)");
 
+    outfile->Printf("barbarella transformation done sorting commence\n");
     //DPD needs both contracted indices in either row or column, so sort the integrals. 
     //In biorthogonal basis,, (VO|VO) =/= (OV|OV)
 
@@ -90,6 +103,7 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_close(&K);
     timer_off("Sort (OO|OO) (i,j,k,l) -> (i,k,j,l)");
 
+    outfile->Printf("(OO|OO) done\n");
 
     // (a,b,c,d) -> (a,c,b,d)
     timer_on("Sort (VV|VV) (a,b,c,d) -> (a,c,b,d)");
@@ -99,6 +113,7 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VV|VV) (a,b,c,d) -> (a,c,b,d)");
 
+    outfile->Printf("(VV|VV) done\n");
 
     // (a,b,i,j) -> (i,b,j,a)
     timer_on("Sort (VV|OO) (a,b,i,j) -> (i,b,j,a)");
@@ -108,6 +123,17 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VV|OO) (a,b,i,j) -> (i,b,j,a)");
 
+    outfile->Printf("(VV|OO) done\n");
+
+    //(VO|VO) no longer the same as (OV|OV) 
+    timer_on("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
+    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[V,O]"),
+                 ID("[V,O]"), ID("[V,O]"), 0, "MO Ints (VO|VO)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , qsrp , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
+    global_dpd_->buf4_close(&K);
+    timer_off("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
+
+    outfile->Printf("(VO|VO) done\n");
 
     // (OV|OV) -> <OO|VV>
     timer_on("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
@@ -116,12 +142,7 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[V,V]"), "(OV|OV) (i,j,a,b)");
     timer_off("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
 
-
-    //(VO|VO) the same as (OV|OV) for the time being
-    timer_on("Sort (VO|VO) (i,a,j,b) -> (i,j,a,b)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
-    timer_off("Sort (VO|VO) (i,a,j,b) -> (i,j,a,b)");
-
+    outfile->Printf("(OV|OV) done\n");
 
     //We need (VO|OV) as well in L_aijb
     timer_on("Construct L_aijb (i,a,j,b) -> (i,a,j,b)");
