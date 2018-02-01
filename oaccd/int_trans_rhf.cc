@@ -115,41 +115,44 @@ void Oaccd::int_trans_rhf(){
 
     outfile->Printf("(VV|VV) done\n");
 
-    // (a,b,i,j) -> (i,b,j,a)
-    timer_on("Sort (VV|OO) (a,b,i,j) -> (i,b,j,a)");
+    // (a,b,i,j) -> (j,a,i,b)
+    timer_on("Sort (VV|OO) (a,b,i,j) -> (j,a,i,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[O,O]"),
                  ID("[V,V]"), ID("[O,O]"), 0, "MO Ints (VV|OO)");
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, sprq, ID("[O,V]"), ID("[O,V]"), "(VV|OO) (j,a,i,b)");
     global_dpd_->buf4_close(&K);
-    timer_off("Sort (VV|OO) (a,b,i,j) -> (i,b,j,a)");
+    timer_off("Sort (VV|OO) (a,b,i,j) -> (j,a,i,b)");
 
     outfile->Printf("(VV|OO) done\n");
-
-    //(VO|VO) no longer the same as (OV|OV) 
-    timer_on("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
-    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[V,O]"),
-                 ID("[V,O]"), ID("[V,O]"), 0, "MO Ints (VO|VO)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , qsrp , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
-    global_dpd_->buf4_close(&K);
-    timer_off("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
-
-    outfile->Printf("(VO|VO) done\n");
 
     // (OV|OV) -> <OO|VV>
     timer_on("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                  ID("[O,V]"), ID("[O,V]"), 0, "MO Ints (OV|OV)");
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[V,V]"), "(OV|OV) (i,j,a,b)");
+    global_dpd_->buf4_close(&K);
     timer_off("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
 
     outfile->Printf("(OV|OV) done\n");
 
+    //(VO|VO) no longer the same as (OV|OV) 
+    timer_on("Sort (VO|VO) (b,j,a,i) -> (i,j,a,b)");
+    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[V,O]"),
+                 ID("[V,O]"), ID("[V,O]"), 0, "MO Ints (VO|VO)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , qsrp , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
+    global_dpd_->buf4_close(&K);
+    timer_off("Sort (VO|VO) (b,j,a,i) -> (i,j,a,b)");
+
+    outfile->Printf("(VO|VO) done\n");
+
     //We need (VO|OV) as well in L_aijb
-    timer_on("Construct L_aijb (i,a,j,b) -> (i,a,j,b)");
-    global_dpd_->buf4_copy(&K, PSIF_LIBTRANS_DPD, "(VO|OV) (i,a,j,b)");
+    timer_on("Construct L_aijb (a,i,j,b) -> (i,a,j,b)");
+    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[O,V]"),
+                 ID("[V,O]"), ID("[O,V]"), 0, "MO Ints (VO|OV)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , qrps, ID("[O,O]"), ID("[V,V]"), "(VO|OV) (i,j,a,b)");
     global_dpd_->buf4_close(&K);
 
-    timer_off("Construct L_aijb (i,a,j,b) -> (i,a,j,b)");
+    timer_off("Construct L_aijb (a,i,j,b) -> (i,a,j,b)");
 
 
     //Generate the orbital energy denominators

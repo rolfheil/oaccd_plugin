@@ -125,18 +125,17 @@ void Oaccd::common_init()
                 }
         }
 
-        U_p->set(0,1,1,1.0);
-        U_p->set(0,2,2,1.0);
+        U_p->set(0,1,1,cos(theta));
+        U_p->set(0,2,2,cos(theta));
       
-
         U_m = std::shared_ptr<Matrix>(
                new Matrix(U_p));
  
-        U_p->set(0,1,2,1.0);
-
-        U_m->set(0,1,2,-1.0);
+        U_p->set(0,1,2,-sin(theta));
+        U_p->set(0,2,1,sin(theta));
+        U_m->set(0,1,2,sin(theta));
+        U_m->set(0,2,1,-sin(theta));
       
-         
         outfile->Printf("lalala \n");
         rCa_->print();
 
