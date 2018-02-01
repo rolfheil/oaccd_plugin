@@ -536,7 +536,7 @@ double Oaccd::ccd_update_rhf(){
 
 void Oaccd::ccd_L_rhf(){
 
-    //Construct L_pqrs = (pq|rs) - (pr|qs) need in CCD
+    //Construct L_pqrs = (pq|rs) - (ps|rq) need in CCD
 
     dpdbuf4 L;     
     dpdbuf4 G;      
