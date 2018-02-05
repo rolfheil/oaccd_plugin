@@ -138,11 +138,6 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
                             label, braCore, ketCore, braDisk, ketDisk);
 
     for(int h=0; h < nirreps_; h++) {
-        outfile->Printf("\n h: %d \n", h);
-        outfile->Printf("\n J coltot: %d \n", J.params->coltot[h]);
-        outfile->Printf("\n K coltot: %d \n", K.params->coltot[h]); 
-        outfile->Printf("\n J rowtot: %d \n", J.params->rowtot[h]);
-        outfile->Printf("\n K rowtot: %d \n", K.params->rowtot[h]);
 
         if(J.params->coltot[h] && J.params->rowtot[h]) {
             memFree = static_cast<size_t>(dpd_memfree() - J.params->coltot[h] - K.params->coltot[h]);
@@ -184,12 +179,6 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
                     int nlinks = sopi_[Gs];
                     int rs = J.col_offset[h][Gr];
 
-                    outfile->Printf("\n h: %d, Gr: %d, Gs: %d \n",h, Gr, Gs);
-                    outfile->Printf("\n nrows: %d \n", nrows);
-                    outfile->Printf("\n ncols: %d \n", ncols);
-                    outfile->Printf("\n nlinks : %d \n", nlinks);
-                    outfile->Printf("\n rs: %d \n", rs);
-                    outfile->Printf("\n pq: %d \n", pq);
                     double **pc4a = c4a->pointer(Gs);
                     if(nrows && ncols && nlinks)
                         C_DGEMM('n', 'n', nrows, ncols, nlinks, 1.0, &J.matrix[h][pq][rs],

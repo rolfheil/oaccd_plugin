@@ -49,6 +49,7 @@ double Oaccd::ccd_energy_rhf(){
     double cc_energy = 0.0;
     double old_energy = 0.0;
     omega_norm = 0.0;
+    temp_norm = 0.0;
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
     psio_->open(PSIF_CC_TAMPS, PSIO_OPEN_OLD);
@@ -127,6 +128,9 @@ void Oaccd::ccd_a2_rhf(){
 
     global_dpd_->buf4_close(&I);
 
+    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+    outfile->Printf("Temp norm A: %16.10f \n", temp_norm);
+
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&T2);
 
@@ -175,6 +179,9 @@ void Oaccd::ccd_b2_rhf(){
     global_dpd_->contract444(&W,&T2,&Omega2,0,1,1.0,1.0);
 
     global_dpd_->buf4_close(&W);
+
+    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+    outfile->Printf("Temp norm B: %16.10f \n", temp_norm);
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&T2);
@@ -263,6 +270,9 @@ void Oaccd::ccd_c2_rhf(){
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&I, &Omega2, 1.0);
 
+    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+    outfile->Printf("Temp norm C: %16.10f \n", temp_norm);
+
     global_dpd_->buf4_close(&I);
     global_dpd_->buf4_close(&Omega2);
 
@@ -339,6 +349,9 @@ void Oaccd::ccd_d2_rhf(){
     global_dpd_->buf4_init(&Omega2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&W, &Omega2, 1.0);
+
+    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+    outfile->Printf("Temp norm D: %16.10f \n", temp_norm);
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&W);
@@ -448,6 +461,9 @@ void Oaccd::ccd_e2_rhf(){
     global_dpd_->buf4_init(&Omega2, PSIF_CC_TAMPS, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&W, &Omega2, 1.0);
+
+    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+    outfile->Printf("Temp norm E: %16.10f \n", temp_norm);
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&W);

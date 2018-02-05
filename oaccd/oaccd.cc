@@ -55,7 +55,8 @@ void Oaccd::common_init()
 {
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
-    double theta = 0.5;
+    double theta = 0.0;
+    bool biort=true;
 
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
@@ -125,17 +126,30 @@ void Oaccd::common_init()
                 }
         }
 
-        U_p->set(0,1,1,cosh(theta));
-        U_p->set(0,2,2,cosh(theta));
+        if(biort){
+            U_p->set(0,1,1,cosh(theta));
+            U_p->set(0,2,2,cosh(theta));
       
-        U_m = std::shared_ptr<Matrix>(
-               new Matrix(U_p));
+            U_m = std::shared_ptr<Matrix>(
+                   new Matrix(U_p));
  
-        U_p->set(0,1,2,-sinh(theta));
-        U_p->set(0,2,1,-sinh(theta));
-        U_m->set(0,1,2,sinh(theta));
-        U_m->set(0,2,1,sinh(theta));
+            U_p->set(0,1,2,-sinh(theta));
+            U_p->set(0,2,1,-sinh(theta));
+            U_m->set(0,1,2,sinh(theta));
+            U_m->set(0,2,1,sinh(theta));
+        }
+        else{
+            U_p->set(0,1,1,cos(theta));
+            U_p->set(0,2,2,cos(theta));
       
+            U_m = std::shared_ptr<Matrix>(
+                   new Matrix(U_p));
+ 
+            U_p->set(0,1,2,-sin(theta));
+            U_p->set(0,2,1,sin(theta));
+            U_m->set(0,1,2,sin(theta));
+            U_m->set(0,2,1,-sin(theta));
+        }
         outfile->Printf("lalala \n");
         rCa_->print();
 
@@ -156,8 +170,15 @@ void Oaccd::common_init()
 //testing that the product of lCa and lCb is correct 
 
         Ca_->print();
-        rCb_->gemm(false, true, 1.0, Ca_, Ca_, 0.0);
-        outfile->Printf("product of lCa and rCa");
+        lCb_ = std::shared_ptr<Matrix>(
+               new Matrix(S_));
+        outfile->Printf("S overlap matrix");
+        lCb_->print();
+
+        lCb_->gemm(false, false, 1.0, S_, lCa_, 0.0);
+
+        rCb_->gemm(true, false, 1.0, lCb_, rCa_, 0.0);
+        outfile->Printf("product of S x lCa x rCa");
         rCb_->print();
 
         U_p->print();

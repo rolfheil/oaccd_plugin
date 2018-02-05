@@ -47,7 +47,7 @@ void Oaccd::int_trans_rhf(){
     //Update one-electron orbitals etc. 
     //Coefficients from Ca_ (and Cb_) in wafunctionobject
     
-    ints->set_print(6);
+    ints->set_print(0);
     ints->update_orbitals();
     ints->set_keep_dpd_so_ints(1);
 
@@ -97,8 +97,6 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[O,O]"),
                  ID("[O,O]"), ID("[O,O]"), 0, "MO Ints (OO|OO)");
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[O,O]"), "(OO|OO) (i,k,j,l)");
-    outfile->Printf("traa");
-    global_dpd_->buf4_print(&K, "traa", 1);
     global_dpd_->buf4_close(&K);
     timer_off("Sort (OO|OO) (i,j,k,l) -> (i,k,j,l)");
 
@@ -116,12 +114,7 @@ void Oaccd::int_trans_rhf(){
     timer_on("Sort (VV|OO) (a,b,i,j) -> (j,a,i,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[O,O]"),
                  ID("[V,V]"), ID("[O,O]"), 0, "MO Ints (VV|OO)");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, psrq, ID("[V,O]"), ID("[O,V]"), "TROLOLO ajib");
-    global_dpd_->buf4_close(&K);
-
-    global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[O,V]"),
-                 ID("[V,O]"), ID("[O,V]"), 0, "TROLOLO ajib");
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, qprs, ID("[O,V]"), ID("[O,V]"), "(VV|OO) (j,a,i,b)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, sprq, ID("[O,V]"), ID("[O,V]"), "(VV|OO) (j,a,i,b)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VV|OO) (a,b,i,j) -> (j,a,i,b)");
 

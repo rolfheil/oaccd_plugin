@@ -75,6 +75,7 @@ protected:
     double mp2_energy;
     double ccd_energy;
     double omega_norm;
+    double temp_norm;
 
     //Various option variables
     double r_convergence;
