@@ -123,6 +123,9 @@ void Oaccd::int_trans_rhf(){
     timer_on("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[V,O]"),
                  ID("[V,O]"), ID("[V,O]"), 0, "MO Ints (VO|VO)");
+    
+    outfile->Printf("VOVO integrals");
+    global_dpd_->buf4_print(&K,"tull",1);   
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , sqrp , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
