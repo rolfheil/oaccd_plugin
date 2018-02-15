@@ -56,7 +56,8 @@ void Oaccd::common_init()
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
     double theta = 0.25;
-    bool biort=true;
+    bool biort= false;
+    bool nonsym = true;
 
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
@@ -137,6 +138,15 @@ void Oaccd::common_init()
             U_p->set(0,2,1,-sinh(theta));
             U_m->set(0,1,2,sinh(theta));
             U_m->set(0,2,1,sinh(theta));
+        }
+        else if(nonsym){
+            double x = 0.1;
+
+            U_m = std::shared_ptr<Matrix>(
+                   new Matrix(U_p));
+ 
+            U_p->set(0,1,2,x);
+            U_m->set(0,1,2,-x);
         }
         else{
             U_p->set(0,1,1,cos(theta));
