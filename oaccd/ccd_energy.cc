@@ -115,6 +115,9 @@ void Oaccd::ccd_a2_rhf(){
     global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "T2");
 
+    outfile->Printf("T2s in");
+    global_dpd_->buf4_print(&T2,"tull3",1);   
+
     //Open a buffer for Omega
     global_dpd_->buf4_init(&Omega2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "Omega2");
@@ -494,6 +497,8 @@ double Oaccd::ccd_update_rhf(){
     //Divide omega with epsilon
     global_dpd_->buf4_init(&Omgs, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "Omega2");
+    outfile->Printf("Omega2");
+    global_dpd_->buf4_print(&Omgs,"tull3",1);   
     global_dpd_->buf4_init(&Amps, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "D (i,j,a,b)");
     global_dpd_->buf4_dirprd(&Amps, &Omgs);

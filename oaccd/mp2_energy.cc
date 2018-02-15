@@ -112,6 +112,26 @@ double Oaccd::mp2_energy_rhf(){
     global_dpd_->buf4_close(&D);
     global_dpd_->buf4_close(&T2);
 
+    //Amplitudes set to zero
+    global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
+                  ID("[O,O]"), ID("[V,V]"), 0, "T2");
+    
+    for(int h = 0; h < nirrep_; ++h){
+        global_dpd_->buf4_mat_irrep_init(&T2, h);
+        for(int row = 0;row < T2.params->rowtot[h]; ++row){
+            int i = T2.params->roworb[h][row][0];
+            int j = T2.params->roworb[h][row][1];
+            for(int col = 0; col < T2.params->coltot[h]; ++col){
+                int a = T2.params->colorb[h][col][0];
+                int b = T2.params->colorb[h][col][1];
+                T2.matrix[h][row][col] = 0.0;
+            }
+        }
+        global_dpd_->buf4_mat_irrep_wrt(&T2, h);
+        global_dpd_->buf4_mat_irrep_close(&T2, h);
+    }
+    global_dpd_->buf4_close(&T2);
+
     timer_off("MP2 energy");
 
     psio_->close(PSIF_CC_TAMPS,true);
