@@ -55,7 +55,7 @@ void Oaccd::common_init()
 {
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
-    double theta = 0.0;
+    double theta = 0.25;
     bool biort=true;
 
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
