@@ -129,6 +129,9 @@ void Oaccd::ccd_a2_rhf(){
     //Contract old amplitudes with integrals
     global_dpd_->contract444(&T2,&I,&Omega2,0,0,1.0,1.0);
 
+    outfile->Printf("\n A2 Omega2 \n");
+    global_dpd_->buf4_print(&Omega2,"tull3",1);   
+
     global_dpd_->buf4_close(&I);
 
     temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
@@ -168,9 +171,9 @@ void Oaccd::ccd_b2_rhf(){
     global_dpd_->contract444(&T2,&I,&W,0,0,1.0,0.0);
     global_dpd_->buf4_close(&I);
 
-    //Read in (ij|kl) integrals and add
+    //Read in (lj|ki) integrals and add
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[O,O]"),
-                  ID("[O,O]"), ID("[O,O]"), 0, "(OO|OO) (i,k,j,l)");
+                  ID("[O,O]"), ID("[O,O]"), 0, "(OO|OO) (i,j,k,l)");
 
     global_dpd_->buf4_axpy(&I, &W, 1.0);
     global_dpd_->buf4_close(&I);
@@ -180,6 +183,9 @@ void Oaccd::ccd_b2_rhf(){
                   ID("[O,O]"), ID("[V,V]"), 0, "Omega2");
 
     global_dpd_->contract444(&W,&T2,&Omega2,0,1,1.0,1.0);
+
+    outfile->Printf("\n B2 Omega2 \n");
+    global_dpd_->buf4_print(&Omega2,"tull3",1);   
 
     global_dpd_->buf4_close(&W);
 
@@ -497,7 +503,7 @@ double Oaccd::ccd_update_rhf(){
     //Divide omega with epsilon
     global_dpd_->buf4_init(&Omgs, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "Omega2");
-    outfile->Printf("Omega2");
+    outfile->Printf("Final Omega2");
     global_dpd_->buf4_print(&Omgs,"tull3",1);   
     global_dpd_->buf4_init(&Amps, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "D (i,j,a,b)");
@@ -563,11 +569,6 @@ void Oaccd::ccd_L_rhf(){
     dpdbuf4 G;      
 
     //Construct L_aijb = 2(ai|jb) - (ab|ji)
-    global_dpd_->buf4_init(&G, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "(VV|OO) (j,a,i,b)");
-    global_dpd_->buf4_sort(&G, PSIF_LIBTRANS_DPD, rqps, ID("[O,V]"), ID("[O,V]"), "(OV|OV) temp");
-    global_dpd_->buf4_close(&G);
-
     global_dpd_->buf4_init(&L, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "(VO|OV) (i,a,j,b)");
     global_dpd_->buf4_copy(&L, PSIF_LIBTRANS_DPD, "L_aijb (i,a,j,b)");
@@ -576,7 +577,7 @@ void Oaccd::ccd_L_rhf(){
     global_dpd_->buf4_init(&L, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                   ID("[O,V]"), ID("[O,V]"), 0, "L_aijb (i,a,j,b)");
     global_dpd_->buf4_init(&G, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
-                  ID("[O,V]"), ID("[O,V]"), 0, "(OV|OV) temp");
+                  ID("[O,V]"), ID("[O,V]"), 0, "(VV|OO) (j,a,i,b)");
 
     global_dpd_->buf4_scm(&L, 2.0);
     global_dpd_->buf4_axpy(&G, &L, -1.0);

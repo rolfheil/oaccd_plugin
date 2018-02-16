@@ -92,15 +92,15 @@ void Oaccd::int_trans_rhf(){
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
-    // (i,j,k,l) -> (i,k,j,l) ->
-    timer_on("Sort (OO|OO) (i,j,k,l) -> (i,k,j,l)");
+    // (l,j,k,i) -> (i,j,k,l) 
+    timer_on("Sort (OO|OO) (l,j,k,i) -> (i,j,k,l)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[O,O]"),
                  ID("[O,O]"), ID("[O,O]"), 0, "MO Ints (OO|OO)");
     outfile->Printf("OOOO integrals");
     global_dpd_->buf4_print(&K,"tull3",1);   
-    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[O,O]"), "(OO|OO) (i,k,j,l)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , sqrp, ID("[O,O]"), ID("[O,O]"), "(OO|OO) (i,j,k,l)");
     global_dpd_->buf4_close(&K);
-    timer_off("Sort (OO|OO) (i,j,k,l) -> (i,k,j,l)");
+    timer_off("Sort (OO|OO) (l,j,k,i) -> (i,j,k,l)");
 
 
     // (a,b,c,d) -> (a,c,b,d)
@@ -126,7 +126,7 @@ void Oaccd::int_trans_rhf(){
 
 
     //(VO|VO) not the same as (OV|OV) 
-    timer_on("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
+    timer_on("Sort (VO|VO) (b,j,a,i) -> (i,j,a,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[V,O]"),
                  ID("[V,O]"), ID("[V,O]"), 0, "MO Ints (VO|VO)");
     
@@ -134,7 +134,7 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_print(&K,"tull",1);   
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , sqrp , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
     global_dpd_->buf4_close(&K);
-    timer_off("Sort (VO|VO) (a,i,b,j) -> (i,j,a,b)");
+    timer_off("Sort (VO|VO) (b,j,a,i) -> (i,j,a,b)");
 
 
     // (OV|OV) -> <OO|VV>

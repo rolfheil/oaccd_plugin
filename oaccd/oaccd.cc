@@ -131,6 +131,9 @@ void Oaccd::common_init()
             U_p->set(0,1,1,cosh(theta));
             U_p->set(0,2,2,cosh(theta));
       
+            U_p->set(0,5,5,cosh(theta));
+            U_p->set(0,6,6,cosh(theta));
+      
             U_m = std::shared_ptr<Matrix>(
                    new Matrix(U_p));
  
@@ -138,6 +141,11 @@ void Oaccd::common_init()
             U_p->set(0,2,1,-sinh(theta));
             U_m->set(0,1,2,sinh(theta));
             U_m->set(0,2,1,sinh(theta));
+ 
+            U_p->set(0,5,6,-sinh(theta));
+            U_p->set(0,6,5,-sinh(theta));
+            U_m->set(0,5,6,sinh(theta));
+            U_m->set(0,6,5,sinh(theta));
         }
         else if(nonsym){
             double x = 0.1;
