@@ -55,7 +55,7 @@ void Oaccd::common_init()
 {
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
-    double theta = 0.25;
+    double theta = 1.0;
     bool biort= true;
     bool nonsym = false;
 

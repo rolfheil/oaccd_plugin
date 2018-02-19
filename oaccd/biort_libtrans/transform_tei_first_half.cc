@@ -57,8 +57,6 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
 
     char *label = new char[100];
 
-    outfile->Printf( "\t Inside tei_first_half \n");
-
 
     // Grab the transformation coefficients
     SharedMatrix c1a = laMOCoefficients_[s1->label()];
@@ -66,8 +64,6 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     SharedMatrix c2a = raMOCoefficients_[s2->label()];
     SharedMatrix c2b = rbMOCoefficients_[s2->label()];
 
-    c1a->print();
-    c2a->print();
     // And the number of orbitals per irrep
     int *aOrbsPI1 = aOrbsPI_[s1->label()];
     int *bOrbsPI1 = bOrbsPI_[s1->label()];

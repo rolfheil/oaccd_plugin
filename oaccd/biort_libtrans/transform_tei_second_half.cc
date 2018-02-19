@@ -79,8 +79,6 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     int *aIndex4 = aIndices_[s4->label()];
     int *bIndex4 = bIndices_[s4->label()];
 
-    outfile->Printf("The c3a");
-    c3a->print();
     // Grab control of DPD for now, but store the active number to restore it later
     int currentActiveDPD = psi::dpd_default;
     dpd_set_default(myDPDNum_);
@@ -104,7 +102,6 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
         }
 
     }
-    outfile->Printf("\nIWL is: %d \n", useIWL_);
     if(useIWL_) iwl = new IWL(psio_.get(), iwlAAIntFile_, tolerance_, 0, 0);
 
     psio_->open(dpdIntFile_, PSIO_OPEN_OLD);

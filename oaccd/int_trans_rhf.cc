@@ -177,6 +177,7 @@ void Oaccd::f_denominator(){
     //Transform the Fock matrix to MO basis
     FockA = Fa_;
     FockA->transform(lCa_, FockA, rCa_);
+    outfile->Printf("\n Printing the Fock matrix \n ");
     FockA->print();
 
     for(int h = 0; h < nirrep_; ++h){
