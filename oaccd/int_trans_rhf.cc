@@ -90,6 +90,10 @@ void Oaccd::int_trans_rhf(){
     //DPD needs both contracted indices in either row or column, so sort the integrals. 
     //In biorthogonal basis,, (VO|VO) =/= (OV|OV)
 
+    tFa_ = ints->compute_biort_fock_matrix(H_,lCa_,rCa_);
+    outfile->Printf("The transformed Fock matrix");
+    tFa_->print();
+
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
     // (l,j,k,i) -> (i,j,k,l) 

@@ -85,5 +85,26 @@ SharedMatrix Biortwfn::rCb() const {
     return rCb_;
 }
 
+SharedMatrix Biortwfn::tFa() const {
+    if (!tFa_) {
+        if (!reference_wavefunction_)
+            throw PSIEXCEPTION("Biortwfn::tFa: Unable to obtain transformed Fock matrix.");
+        else
+            return reference_wavefunction_->Fa();
+    }
+
+    return tFa_;
+}
+
+SharedMatrix Biortwfn::tFb() const {
+    if (!tFb_) {
+        if (!reference_wavefunction_)
+            throw PSIEXCEPTION("Biortwfn::tFb: Unable to obtain transformed Fock matrix.");
+        else
+            return reference_wavefunction_->Fb();
+    }
+
+    return tFb_;
+}
 }} // End namespaces
 

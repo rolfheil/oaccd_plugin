@@ -73,6 +73,8 @@ public:
 
     void update_orbitals();   
 
+    SharedMatrix compute_biort_fock_matrix(SharedMatrix Hcore, SharedMatrix Clmat, SharedMatrix Crmat);
+   
     virtual ~BiortIntTransform();
 
 protected:

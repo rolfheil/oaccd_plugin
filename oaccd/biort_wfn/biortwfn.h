@@ -53,6 +53,10 @@ public:
     SharedMatrix lCb() const;
     SharedMatrix rCb() const;
 
+    //Return the transformed fock matrices
+    SharedMatrix tFa() const;
+    SharedMatrix tFb() const;
+
 protected:
 
     //left and right MO coeffiecent matrices alpha
@@ -62,7 +66,11 @@ protected:
     //left and right MO coeffiecent matrices beta
     SharedMatrix lCb_;
     SharedMatrix rCb_;
-
+    
+    //Transformed Fock matrices
+    SharedMatrix tFa_;
+    SharedMatrix tFb_;
+   
 };
 
 
