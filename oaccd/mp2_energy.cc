@@ -113,7 +113,7 @@ double Oaccd::mp2_energy_rhf(){
     global_dpd_->buf4_close(&T2);
 
     //Amplitudes set to zero
-    global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
+/*    global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "T2");
     
     for(int h = 0; h < nirrep_; ++h){
@@ -130,7 +130,7 @@ double Oaccd::mp2_energy_rhf(){
         global_dpd_->buf4_mat_irrep_wrt(&T2, h);
         global_dpd_->buf4_mat_irrep_close(&T2, h);
     }
-    global_dpd_->buf4_close(&T2);
+    global_dpd_->buf4_close(&T2);*/
 
     timer_off("MP2 energy");
 

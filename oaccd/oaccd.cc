@@ -56,8 +56,10 @@ void Oaccd::common_init()
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
     double theta = 1.0;
-    bool biort= true;
+    bool biort= false;
     bool nonsym = false;
+    bool t1trans = true;
+    bool orthogonal = false;
 
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
@@ -156,7 +158,34 @@ void Oaccd::common_init()
             U_p->set(0,1,2,x);
             U_m->set(0,1,2,-x);
         }
-        else{
+        else if(t1trans){
+
+            U_m = std::shared_ptr<Matrix>(
+                   new Matrix(U_p));
+ 
+            U_p->set(0,0,5,-0.000023188);
+            U_p->set(0,1,5,-0.000988382);
+            U_p->set(0,2,5, 0.000000000);
+            U_p->set(0,3,5,-0.010371795);
+            U_p->set(0,4,5, 0.000000000);
+            U_p->set(0,0,6, 0.000000000);
+            U_p->set(0,1,6, 0.000000000);
+            U_p->set(0,2,6, 0.003295502);
+            U_p->set(0,3,6, 0.000000000);
+            U_p->set(0,4,6, 0.000000000);
+ 
+            U_m->set(0,0,5, 0.000023188);
+            U_m->set(0,1,5, 0.000988382);
+            U_m->set(0,2,5, 0.000000000);
+            U_m->set(0,3,5, 0.010371795);
+            U_m->set(0,4,5, 0.000000000);
+            U_m->set(0,0,6, 0.000000000);
+            U_m->set(0,1,6, 0.000000000);
+            U_m->set(0,2,6,-0.003295502);
+            U_m->set(0,3,6, 0.000000000);
+            U_m->set(0,4,6, 0.000000000);
+        }
+        else if(orthogonal){
             U_p->set(0,1,1,cos(theta));
             U_p->set(0,2,2,cos(theta));
       
@@ -168,8 +197,10 @@ void Oaccd::common_init()
             U_m->set(0,1,2,sin(theta));
             U_m->set(0,2,1,-sin(theta));
         }
-        outfile->Printf("lalala \n");
-        rCa_->print();
+        else{
+            U_m = std::shared_ptr<Matrix>(
+                   new Matrix(U_p));
+        }
 
         rCb_ = std::shared_ptr<Matrix>(
                new Matrix(Ca_));
@@ -180,14 +211,15 @@ void Oaccd::common_init()
         rCb_->gemm(false, true, 1.0, lCa_, U_m, 0.0); 
         lCa_->copy(rCb_); 
         
-        rCa_->print();
+        outfile->Printf("Original Ca_");
+        Ca_->print();
+        outfile->Printf("lCa_");
         lCa_->print();
+        outfile->Printf("rCa_");
+        rCa_->print();
 
         outfile->Printf("swarms \n");
 
-//testing that the product of lCa and lCb is correct 
-
-        Ca_->print();
         lCb_ = std::shared_ptr<Matrix>(
                new Matrix(S_));
         outfile->Printf("S overlap matrix");
@@ -196,10 +228,31 @@ void Oaccd::common_init()
         lCb_->gemm(false, false, 1.0, S_, lCa_, 0.0);
 
         rCb_->gemm(true, false, 1.0, lCb_, rCa_, 0.0);
-        outfile->Printf("product of S x lCa x rCa");
+        outfile->Printf("\n Product of S x lCa x rCa \n");
         rCb_->print();
 
+        rCb_->gemm(true, false, 1.0, lCa_, rCa_, 0.0);
+        outfile->Printf("\n Product of lCa x rCa \n");
+        rCb_->print();
+
+        rCb_->gemm('N', 'T', nsopi_[0],nsopi_[0],doccpi_[0],1.0,Ca_,nsopi_[0],Ca_,nsopi_[0],0.0,
+                    nsopi_[0],0,0,0);
+        outfile->Printf("\n Product of Ca_o x Ca_o \n");
+        rCb_->print();
+        rCb_->gemm('N', 'T', nsopi_[0],nsopi_[0],doccpi_[0],1.0,rCa_,nsopi_[0],lCa_,nsopi_[0],0.0,
+                    nsopi_[0],0,0,0);
+        outfile->Printf("\n Product of rCa_o x lCa_o \n");
+        rCb_->print();
+
+        outfile->Printf("\n Alpha density Da_ \n");
+        Da_->print();
+
+        outfile->Printf("\n Core Hamiltonian H_ \n");
+        H_->print();
+
+        outfile->Printf("\n U_p matrix \n");
         U_p->print();
+        outfile->Printf("\n U_m matrix \n");
         U_m->print();
         
         lCb_ = lCa_;
