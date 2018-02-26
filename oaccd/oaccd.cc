@@ -76,6 +76,7 @@ void Oaccd::common_init()
     nmopi_.print();
     outfile->Printf("Irreps: %3i \n",nirrep_);
 
+    Fa_->print();
     reference=options_.get_str("REFERENCE");
     cc_maxdiis = options_.get_int("CC_DIIS_MAX_VECS");
     cc_mindiis = options_.get_int("CC_DIIS_MIN_VECS");
@@ -106,7 +107,6 @@ void Oaccd::common_init()
         FDiaVirA = std::shared_ptr<Vector>(        
         new Vector("Fock matrix virtual diagonal", avirtpi_));
 
-        Fa_->print();
         outfile->Printf("Ca oaccd");
         Ca_->print();
         

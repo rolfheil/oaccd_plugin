@@ -162,7 +162,6 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VO|OV) (a,i,j,b) -> (i,a,j,b)");
 
-
     //Generate the orbital energy denominators
     timer_on("F denominator");
     f_denominator();
