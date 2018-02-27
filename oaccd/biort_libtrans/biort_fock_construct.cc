@@ -112,7 +112,8 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
        
     global_dpd_->file2_init(&D, PSIF_LIBTRANS_DPD, 0, DPD_ID('n'),DPD_ID('n'), "D Transformed");
     global_dpd_->file2_mat_init(&D);
-
+    global_dpd_->file2_mat_init(&F);
+    
     for(int h = 0; h < nirreps_; ++h){
         for(int alpha = 0; alpha < sopi_[h]; alpha++){
             for(int beta = 0; beta < sopi_[h]; beta++){
@@ -122,8 +123,20 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     }
 
     global_dpd_->file2_mat_wrt(&D);
-    global_dpd_->file2_close(&D);
 
+    //Form the Fock matrices
+
+        
+    for(int h = 0; h < nirreps_; ++h){
+        for(int alpha = 0; alpha < sopi_[h]; alpha++){
+            for(int beta = 0; beta < sopi_[h]; beta++){
+                F.matrix[h][alpha][beta] = H_->get(h,alpha,beta);
+            }
+        }
+    }
+
+    global_dpd_->file2_close(&D);
+    global_dpd_->file2_close(&F);
 
     Fmat->add(Hcore);
 
