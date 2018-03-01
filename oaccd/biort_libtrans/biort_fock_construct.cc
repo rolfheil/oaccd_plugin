@@ -60,7 +60,6 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     // This function is supposed to only be called after an initial presort, but we'll check to make sure.
     
     psio_->open(PSIF_SO_PRESORT, PSIO_OPEN_OLD);
-    psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
     if(!alreadyPresorted_)
         presort_so_tei();
@@ -87,13 +86,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     int currentActiveDPD = psi::dpd_default;
     dpd_set_default(myDPDNum_);
 
-    dpdbuf4 J;
-    global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n,n]"), DPD_ID("[n,n]"),
-                           DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
-
-
     //Form the density matrices
-
     std::vector<int> sopiv(nirreps_);
     std::vector<int> occpiv(nirreps_);
     std::vector<unsigned long> zerov(nirreps_);
@@ -108,11 +101,29 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     outfile->Printf("The density matrix swarm");
     Dmat->print();
 
+    //Open the DPD file with integrals
+    dpdbuf4 J;
+    global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n,n]"), DPD_ID("[n,n]"),
+                           DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
+
+
+   for(int h = 0; h < nirreps_; ++h){
+       for(delta = 0; delta < sopiv; delta++){
+           global_dpd->buf4_mat_irrap_rd_block(&J, h, delta*sopiv[h], sopiv[h]);
+           for(D_h; D_h < nirreps; D_h++){         
+                Eh = h^D_h;
+                C_DGEMV('n', coltot[h], sopiv[D_h], 1.0, &J-smatrix[h][0][0], coltot[h],
+                         Dmat[D_h][0][0],,1.0,Fmat[F_h,0,0  ])
+           }
+       }  
+   }
+/*
     //Make the density matrices DPD
        
     global_dpd_->file2_init(&D, PSIF_LIBTRANS_DPD, 0, DPD_ID('n'),DPD_ID('n'), "D Transformed");
     global_dpd_->file2_mat_init(&D);
     global_dpd_->file2_mat_init(&F);
+
     
     for(int h = 0; h < nirreps_; ++h){
         for(int alpha = 0; alpha < sopi_[h]; alpha++){
@@ -134,6 +145,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
             }
         }
     }
+*/
 
     global_dpd_->file2_close(&D);
     global_dpd_->file2_close(&F);
@@ -143,7 +155,6 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     global_dpd_->buf4_close(&J);
 
     psio_->close(PSIF_SO_PRESORT, keepDpdSoInts_);
-    psio_->close(PSIF_LIBTRANS_DPD, keepDpdSoInts_);
 
     // Hand DPD control back to the user
     dpd_set_default(currentActiveDPD);
