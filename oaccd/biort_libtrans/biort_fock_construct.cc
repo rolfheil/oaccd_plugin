@@ -68,7 +68,6 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     int nBuckets, thisBucketRows;
     size_t rowsPerBucket, rowsLeft, memFree;
     dpdbuf4 I;
-    dpdfile2 D, F;
    
     // tFa_ = std::shared_ptr<Matrix>(new Matrix(Fa_));:
     // tFb_ = std::shared_ptr<Matrix>(new Matrix(Fb_));
@@ -79,7 +78,9 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
         throw PSIEXCEPTION("Row dimension of C_l matrix is not equal to SOs per irrep in LibTrans::compute_fock_like_matrices()");
     if(Crmat->rowspi() != sopi_)
         throw PSIEXCEPTION("Row dimension of C_r matrix is not equal to SOs per irrep in LibTrans::compute_fock_like_matrices()");
-    SharedMatrix Fmat(new Matrix("F matrix", sopi_, sopi_));
+    SharedMatrix Fmat;
+    Fmat = std::shared_ptr<Matrix>(new Matrix(Hcore));
+    Fmat->set_name("Transformed Fock matrix");
     SharedMatrix Dmat(new Matrix("D matrix", sopi_, sopi_));
 
     // Grab control of DPD for now, but store the active number to restore it later
@@ -106,51 +107,28 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n,n]"), DPD_ID("[n,n]"),
                            DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
 
+    for(int h = 0; h < nirreps_; ++h){
+       for(int h_delta = 0; h_delta < nirreps_; ++h_delta){
+           int h_gamma = h^h_delta;
+           if(sopiv[h_gamma] &&  sopiv[h_delta]){
+               int  h_gamma = h^h_delta;
+               global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_delta]);
+               for(int delta = 0; delta < nirreps_; delta++){
 
-   for(int h = 0; h < nirreps_; ++h){
-       for(delta = 0; delta < sopiv; delta++){
-           global_dpd->buf4_mat_irrap_rd_block(&J, h, delta*sopiv[h], sopiv[h]);
-           for(D_h; D_h < nirreps; D_h++){         
-                Eh = h^D_h;
-                C_DGEMV('n', coltot[h], sopiv[D_h], 1.0, &J-smatrix[h][0][0], coltot[h],
-                         Dmat[D_h][0][0],,1.0,Fmat[F_h,0,0  ])
+                   global_dpd_->buf4_mat_irrep_rd_block(&J, h, delta*sopiv[h_gamma],sopiv[h_gamma]);
+                 
+                   double **pFmat = Fmat->pointer(h);  
+                   double **pDmat = Dmat->pointer(h);  
+                   C_DGEMV('n', J.params->rowtot[h], sopiv[h_gamma], 1.0, &J.matrix[h][0][0], sopiv[h_gamma], pDmat[delta], 1, 1.0, pFmat[0],1);
+
+                   pFmat = Fmat->pointer(h_gamma);  
+                   pDmat = Dmat->pointer(h_gamma);  
+                   C_DGEMV('N', sopiv[h_delta], J.params->rowtot[h_gamma],-0.5, &J.matrix[h][0][0],J.params->rowtot[h_gamma],pDmat[0],1, 1.0, pFmat[delta],1);
+               } 
            }
        }  
    }
-/*
-    //Make the density matrices DPD
-       
-    global_dpd_->file2_init(&D, PSIF_LIBTRANS_DPD, 0, DPD_ID('n'),DPD_ID('n'), "D Transformed");
-    global_dpd_->file2_mat_init(&D);
-    global_dpd_->file2_mat_init(&F);
 
-    
-    for(int h = 0; h < nirreps_; ++h){
-        for(int alpha = 0; alpha < sopi_[h]; alpha++){
-            for(int beta = 0; beta < sopi_[h]; beta++){
-                D.matrix[h][alpha][beta] = Dmat->get(h,alpha,beta);
-            }
-        }
-    }
-
-    global_dpd_->file2_mat_wrt(&D);
-
-    //Form the Fock matrices
-
-        
-    for(int h = 0; h < nirreps_; ++h){
-        for(int alpha = 0; alpha < sopi_[h]; alpha++){
-            for(int beta = 0; beta < sopi_[h]; beta++){
-                F.matrix[h][alpha][beta] = H_->get(h,alpha,beta);
-            }
-        }
-    }
-*/
-
-    global_dpd_->file2_close(&D);
-    global_dpd_->file2_close(&F);
-
-    Fmat->add(Hcore);
 
     global_dpd_->buf4_close(&J);
 

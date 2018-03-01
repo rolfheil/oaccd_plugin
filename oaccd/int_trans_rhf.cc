@@ -91,8 +91,6 @@ void Oaccd::int_trans_rhf(){
     //In biorthogonal basis,, (VO|VO) =/= (OV|OV)
 
     tFa_ = ints->compute_biort_fock_matrix(H_,lCa_,rCa_);
-    outfile->Printf("The transformed Fock matrix");
-    tFa_->print();
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
@@ -178,7 +176,11 @@ void Oaccd::f_denominator(){
     dpdfile2 F;
 
     //Transform the Fock matrix to MO basis
-    FockA = Fa_;
+    FockA = tFa_;
+    outfile->Printf("\n Original Fock matrix lalala\n ");
+    Fa_->print();
+    outfile->Printf("\n One electron integrals\n ");
+    H_->print();
     outfile->Printf("\n Printing the Fock matrix before\n ");
     FockA->print();
     FockA->transform(lCa_, FockA, rCa_);
