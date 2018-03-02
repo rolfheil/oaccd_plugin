@@ -78,10 +78,11 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
         throw PSIEXCEPTION("Row dimension of C_l matrix is not equal to SOs per irrep in LibTrans::compute_fock_like_matrices()");
     if(Crmat->rowspi() != sopi_)
         throw PSIEXCEPTION("Row dimension of C_r matrix is not equal to SOs per irrep in LibTrans::compute_fock_like_matrices()");
-    SharedMatrix Fmat;
-    Fmat = std::shared_ptr<Matrix>(new Matrix(Hcore));
-    Fmat->set_name("Transformed Fock matrix");
+    //SharedMatrix Fmat;
+    // Fmat = std::shared_ptr<Matrix>(new Matrix(Hcore));
+    //  Fmat->set_name("Transformed Fock matrix");
     SharedMatrix Dmat(new Matrix("D matrix", sopi_, sopi_));
+    SharedMatrix Fmat(new Matrix("F matrix", sopi_, sopi_));
 
     // Grab control of DPD for now, but store the active number to restore it later
     int currentActiveDPD = psi::dpd_default;
@@ -107,21 +108,22 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n,n]"), DPD_ID("[n,n]"),
                            DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
 
-    for(int h = 0; h < nirreps_; ++h){
-       for(int h_delta = 0; h_delta < nirreps_; ++h_delta){
+    for(int h = 0; h < nirreps_; h++){
+       outfile->Printf("h: %3i, nirreps: %3i \n",h,nirreps_);
+       for(int h_delta = 0; h_delta < nirreps_; h_delta++){
            int h_gamma = h^h_delta;
            if(sopiv[h_gamma] &&  sopiv[h_delta]){
-               int  h_gamma = h^h_delta;
-               global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_delta]);
-               for(int delta = 0; delta < nirreps_; delta++){
+               global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_gamma]);
+               for(int delta = 0; delta < sopiv[h_delta]; delta++){
 
+                   outfile->Printf("h: %3i, h_delta: %3i, delta: %3i \n",h,h_delta,delta);
                    global_dpd_->buf4_mat_irrep_rd_block(&J, h, delta*sopiv[h_gamma],sopiv[h_gamma]);
                  
                    double **pFmat = Fmat->pointer(h);  
-                   double **pDmat = Dmat->pointer(h);  
-                   C_DGEMV('n', J.params->rowtot[h], sopiv[h_gamma], 1.0, &J.matrix[h][0][0], sopiv[h_gamma], pDmat[delta], 1, 1.0, pFmat[0],1);
+                   double **pDmat = Dmat->pointer(h_gamma);  
+                   C_DGEMV('N', J.params->rowtot[h], sopiv[h_gamma], 1.0, &J.matrix[h][0][0], J.params->rowtot[h], pDmat[delta], 1, 1.0, pFmat[0],1);
 
-                   pFmat = Fmat->pointer(h_gamma);  
+                   pFmat = Fmat->pointer(h_delta);  
                    pDmat = Dmat->pointer(h_gamma);  
                    C_DGEMV('N', sopiv[h_delta], J.params->rowtot[h_gamma],-0.5, &J.matrix[h][0][0],J.params->rowtot[h_gamma],pDmat[0],1, 1.0, pFmat[delta],1);
                } 
@@ -136,6 +138,12 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
 
     // Hand DPD control back to the user
     dpd_set_default(currentActiveDPD);
+
+    outfile->Printf("Hcore swarm");
+    Hcore->print();
+
+    outfile->Printf("The transformed Fock matrix swarm");
+    Fmat->print();
 
     return Fmat;
 }

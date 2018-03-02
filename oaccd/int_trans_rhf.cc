@@ -176,7 +176,7 @@ void Oaccd::f_denominator(){
     dpdfile2 F;
 
     //Transform the Fock matrix to MO basis
-    FockA = tFa_;
+    FockA = Fa_;
     outfile->Printf("\n Original Fock matrix lalala\n ");
     Fa_->print();
     outfile->Printf("\n One electron integrals\n ");
