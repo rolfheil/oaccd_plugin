@@ -121,7 +121,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                  
                    double **pFmat = Fmat->pointer(h);  
                    double **pDmat = Dmat->pointer(h_gamma);  
-                   C_DGEMV('N', J.params->rowtot[h], sopiv[h_gamma], 1.0, &J.matrix[h][0][0], J.params->rowtot[h], pDmat[delta], 1, 1.0, pFmat[0],1);
+                   C_DGEMV('N', J.params->rowtot[h], sopiv[h_gamma], 1.0, &J.matrix[h][0][0], sopiv[h_gamma], pDmat[delta], 1, 1.0, pFmat[0],1);
 
                    pFmat = Fmat->pointer(h_delta);  
                    pDmat = Dmat->pointer(h_gamma);  
