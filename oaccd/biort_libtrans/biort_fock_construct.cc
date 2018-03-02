@@ -120,12 +120,12 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                    global_dpd_->buf4_mat_irrep_rd_block(&J, h, delta*sopiv[h_gamma],sopiv[h_gamma]);
                  
                    double **pFmat = Fmat->pointer(h);  
-                   double **pDmat = Dmat->pointer(h_gamma);  
-                   C_DGEMV('N', J.params->rowtot[h], sopiv[h_gamma], 1.0, &J.matrix[h][0][0], sopiv[h_gamma], pDmat[delta], 1, 1.0, pFmat[0],1);
+                   double **pDmat = Dmat->pointer(h);  
+                   C_DGEMV('N', sopiv[h_gamma], J.params->rowtot[h], 2.0, &J.matrix[h][0][0], J.params->rowtot[h], pDmat[0], 1, 1.0,&pFmat[0][delta],sopiv[h_delta]);
 
                    pFmat = Fmat->pointer(h_delta);  
                    pDmat = Dmat->pointer(h_gamma);  
-                   C_DGEMV('N', sopiv[h_delta], J.params->rowtot[h_gamma],-0.5, &J.matrix[h][0][0],J.params->rowtot[h_gamma],pDmat[0],1, 1.0, pFmat[delta],1);
+                   C_DGEMV('T', J.params->rowtot[h_gamma], sopiv[h_delta],-1.0, &J.matrix[h][0][0],sopiv[h_delta],pDmat[0],1, 1.0, &pFmat[0][delta],sopiv[h_delta]);
                } 
            }
        }  
@@ -144,6 +144,11 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
 
     outfile->Printf("The transformed Fock matrix swarm");
     Fmat->print();
+
+    Fmat->add(Hcore);
+    outfile->Printf("The transformed Fock matrix swarm");
+    Fmat->print();
+
 
     return Fmat;
 }
