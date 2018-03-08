@@ -30,6 +30,7 @@
 #include "oaccd.h"
 #include "math.h"
 #include "psi4/libdpd/dpd.h"
+#include "psi4/libmints/molecule.h"
 
 using namespace std;
 
@@ -44,6 +45,7 @@ Oaccd::Oaccd(SharedWavefunction ref_wfn, Options& options)
 {
     // Shallow copy ref_wfn data into this wavefunction
     shallow_copy(ref_wfn);
+    reference_wavefunction_ = ref_wfn;
     common_init();
 }
 
@@ -55,6 +57,7 @@ void Oaccd::common_init()
 {
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
+    std::shared_ptr<Matrix> kappa;
     double theta = 1.0;
     bool biort= false;
     bool nonsym = false;
@@ -75,6 +78,11 @@ void Oaccd::common_init()
     frzvpi_.print();
     nmopi_.print();
     outfile->Printf("Irreps: %3i \n",nirrep_);
+
+    //Set up some reference energy stuff that we'll need when changing basis
+    tF_energy = energy_;
+    nuc_energy = reference_wavefunction_->molecule()->nuclear_repulsion_energy();
+        
 
     Fa_->print();
     reference=options_.get_str("REFERENCE");
@@ -121,7 +129,11 @@ void Oaccd::common_init()
         U_p = std::shared_ptr<Matrix>(
                new Matrix(Ca_));
 
+        kappa = std::shared_ptr<Matrix>(
+               new Matrix(Ca_));
+
         U_p->set(0.0);
+        kappa->set(0.0);
         
         for(int h = 0; h < nirrep_; h++){
                 for(int i = 0; i < nmopi_[h]; i++){
@@ -162,28 +174,53 @@ void Oaccd::common_init()
 
             U_m = std::shared_ptr<Matrix>(
                    new Matrix(U_p));
+
+            /*
+            kappa->set(0, 5,0,-0.000108178);
+            kappa->set(0, 5,1,-0.003184533);
+            kappa->set(0, 5,2, 0.000000000);
+            kappa->set(0, 5,3, 0.007586514);
+            kappa->set(0, 5,4, 0.000000000);
+            kappa->set(0, 6,0, 0.000000000);
+            kappa->set(0, 6,1, 0.000000000);
+            kappa->set(0, 6,2,-0.005945744);
+            kappa->set(0, 6,3, 0.000000000);
+            kappa->set(0, 6,4, 0.000000000);
+            kappa->set(0, 7,0, 0.000000000);
+            kappa->set(0, 7,1,-0.000000000);
+            kappa->set(0, 7,2,-0.001350703);
+            kappa->set(0, 7,3, 0.000000000);
+            kappa->set(0, 7,4, 0.000000000);
+            kappa->set(0, 8,0,-0.000075723);
+            kappa->set(0, 8,1, 0.000086889);
+            kappa->set(0, 8,2, 0.000000000);
+            kappa->set(0, 8,3, 0.001206825);
+            kappa->set(0, 8,4, 0.000000000);
+            kappa->set(0, 9,0, 0.000000000);
+            kappa->set(0, 9,1, 0.000000000);
+            kappa->set(0, 9,2, 0.000000000);
+            kappa->set(0, 9,3,-0.000000000);
+            kappa->set(0, 9,4, 0.000942717);
+            kappa->set(0,10,0,-0.000079432);
+            kappa->set(0,10,1,-0.003453193);
+            kappa->set(0,10,2,-0.000000000);
+            kappa->set(0,10,3, 0.003944658);
+            kappa->set(0,10,4,-0.000000000);
+            kappa->set(0,11,0, 0.000000000);
+            kappa->set(0,11,1, 0.000000000);
+            kappa->set(0,11,2, 0.008504124);
+            kappa->set(0,11,3,-0.000000000);
+            kappa->set(0,11,4, 0.000000000);
+            kappa->set(0,12,0,-0.000241174);
+            kappa->set(0,12,1, 0.002523827);
+            kappa->set(0,12,2, 0.000000000);
+            kappa->set(0,12,3,-0.002107662);
+            kappa->set(0,12,4, 0.000000000);
+            */
  
-            U_p->set(0,0,5,-0.000023188);
-            U_p->set(0,1,5, 0.000988382);
-            U_p->set(0,2,5, 0.000000000);
-            U_p->set(0,3,5,-0.010371795);
-            U_p->set(0,4,5, 0.000000000);
-            U_p->set(0,0,6, 0.000000000);
-            U_p->set(0,1,6, 0.000000000);
-            U_p->set(0,2,6, 0.003295502);
-            U_p->set(0,3,6, 0.000000000);
-            U_p->set(0,4,6, 0.000000000);
+            U_p->axpy(1.0,kappa);
+            U_m->axpy(-1.0,kappa);
  
-            U_m->set(0,0,5, 0.000023188);
-            U_m->set(0,1,5,-0.000988382);
-            U_m->set(0,2,5, 0.000000000);
-            U_m->set(0,3,5, 0.010371795);
-            U_m->set(0,4,5, 0.000000000);
-            U_m->set(0,0,6, 0.000000000);
-            U_m->set(0,1,6, 0.000000000);
-            U_m->set(0,2,6,-0.003295502);
-            U_m->set(0,3,6, 0.000000000);
-            U_m->set(0,4,6, 0.000000000);
         }
         else if(orthogonal){
             U_p->set(0,1,1,cos(theta));
@@ -235,20 +272,24 @@ void Oaccd::common_init()
         outfile->Printf("\n Product of lCa x rCa \n");
         rCb_->print();
 
-        rCb_->gemm('N', 'T', nsopi_[0],nsopi_[0],doccpi_[0],1.0,Ca_,nsopi_[0],Ca_,nsopi_[0],0.0,
+/*        rCb_->gemm('N', 'T', nsopi_[0],nsopi_[0],doccpi_[0],1.0,Ca_,nsopi_[0],Ca_,nsopi_[0],0.0,
                     nsopi_[0],0,0,0);
         outfile->Printf("\n Product of Ca_o x Ca_o \n");
         rCb_->print();
         rCb_->gemm('N', 'T', nsopi_[0],nsopi_[0],doccpi_[0],1.0,rCa_,nsopi_[0],lCa_,nsopi_[0],0.0,
                     nsopi_[0],0,0,0);
         outfile->Printf("\n Product of rCa_o x lCa_o \n");
-        rCb_->print();
+        rCb_->print();*/
 
         outfile->Printf("\n Alpha density Da_ \n");
         Da_->print();
 
         outfile->Printf("\n Core Hamiltonian H_ \n");
         H_->print();
+
+        outfile->Printf("\n MO Fock matrix \n");
+        lCb_->transform(Ca_, Fa_, Ca_);
+        lCb_->print();
 
         outfile->Printf("\n U_p matrix \n");
         U_p->print();
@@ -272,9 +313,6 @@ double Oaccd::compute_energy()
     
     //Allocate integrals,must be done after constructor
     const bool initialize=false;
-
-    outfile->Printf("\n biortint \n\n");
-    rCa_ -> print();
 
     std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
     ints = new BiortIntTransform(shared_from_this(), spaces,
@@ -307,9 +345,10 @@ double Oaccd::compute_energy()
                    
     ccd_energy = ccd_energy_rhf();
 
-    outfile->Printf("\nTotal SCF energy:  %16.10f \n", energy_);
-    outfile->Printf("Total MP2 energy:  %16.10f \n", mp2_energy + energy_);
-    outfile->Printf("Total CCD energy:  %16.10f \n", ccd_energy + energy_);
+    outfile->Printf("\nTotal SCF energy:  %16.14f \n", energy_);
+    outfile->Printf("Trans ref energy:  %16.14f \n", tF_energy);
+    outfile->Printf("Total MP2 energy:  %16.14f \n", mp2_energy + tF_energy);
+    outfile->Printf("Total CCD energy:  %16.14f \n", ccd_energy + tF_energy);
                    
     //Orbital gradients
     //Check convergence, if not, update for next iteration 

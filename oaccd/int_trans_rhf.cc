@@ -90,7 +90,10 @@ void Oaccd::int_trans_rhf(){
     //DPD needs both contracted indices in either row or column, so sort the integrals. 
     //In biorthogonal basis,, (VO|VO) =/= (OV|OV)
 
-    tFa_ = ints->compute_biort_fock_matrix(H_,lCa_,rCa_);
+    outfile->Printf("\n tF_energy is: %f \n",tF_energy);
+    tFa_ = ints->compute_biort_fock_matrix(H_,lCa_,rCa_,tF_energy);
+    tF_energy = tF_energy + nuc_energy; 
+    outfile->Printf("\n tF_energy is: %f \n",tF_energy);
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
@@ -176,7 +179,7 @@ void Oaccd::f_denominator(){
     dpdfile2 F;
 
     //Transform the Fock matrix to MO basis
-    FockA = tFa_;
+    FockA = Fa_;
     outfile->Printf("\n Original Fock matrix lalala\n ");
     Fa_->print();
     outfile->Printf("\n One electron integrals\n ");

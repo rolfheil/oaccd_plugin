@@ -55,7 +55,7 @@ namespace psi{ namespace oaccd{
  *                subset for the frozen core operator.
  * @return a list of the Fock matrices associated with each incoming C matrix.
  */
-SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, SharedMatrix Clmat, SharedMatrix Crmat)
+SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, SharedMatrix Clmat, SharedMatrix Crmat, double &tFock_energy)
 {
     // This function is supposed to only be called after an initial presort, but we'll check to make sure.
     
@@ -83,6 +83,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     //  Fmat->set_name("Transformed Fock matrix");
     SharedMatrix Dmat(new Matrix("D matrix", sopi_, sopi_));
     SharedMatrix Fmat(new Matrix("F matrix", sopi_, sopi_));
+    SharedMatrix temp(new Matrix("temp mat", sopi_, sopi_));
 
     // Grab control of DPD for now, but store the active number to restore it later
     int currentActiveDPD = psi::dpd_default;
@@ -91,14 +92,19 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     //Form the density matrices
     std::vector<int> sopiv(nirreps_);
     std::vector<int> occpiv(nirreps_);
-    std::vector<unsigned long> zerov(nirreps_);
 
     for(int h = 0; h < nirreps_; h++){
         sopiv[h] = sopi_[h];
         occpiv[h] = clsdpi_[h];  
-        zerov[h]= 0;
     }
-    Dmat->gemm('N', 'T', sopiv,sopiv,occpiv,1.0,rCa_, sopiv,lCa_,sopiv,0.0,sopiv);
+    Crmat->print();
+    Clmat->print();
+    Dmat->print();
+    for(int h = 0; h < nirreps_; h++){
+        outfile->Printf("h: %3i,  sopiv: %3i \n",h,sopiv[h]);
+        outfile->Printf("h: %3i, occpiv: %3i \n",h,occpiv[h]);
+    }
+    Dmat->gemm('N', 'T', sopiv,sopiv,occpiv,1.0,Crmat, sopiv,Clmat,sopiv,0.0,sopiv);
    
     outfile->Printf("The density matrix swarm");
     Dmat->print();
@@ -108,7 +114,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n,n]"), DPD_ID("[n,n]"),
                            DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
 
-    for(int h = 0; h < nirreps_; h++){
+/*    for(int h = 0; h < nirreps_; h++){
        outfile->Printf("h: %3i, nirreps: %3i \n",h,nirreps_);
        for(int h_delta = 0; h_delta < nirreps_; h_delta++){
            int h_gamma = h^h_delta;
@@ -129,7 +135,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                } 
            }
        }  
-   }
+   }*/
 
 
     global_dpd_->buf4_close(&J);
@@ -142,6 +148,17 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     outfile->Printf("Hcore swarm");
     Hcore->print();
 
+    temp->transform(Clmat,Fmat,Crmat);
+    double exchange = 0.0;
+    for(int h = 0; h < nirreps_; h++){
+        for(int i = 0; i < occpiv[h]; i++){
+            outfile->Printf("h: %3i, nirreps: %3i \n",h,nirreps_);
+            exchange -= temp->get(h,i,i); 
+        }
+    }
+    
+    outfile->Printf("\n the Trace is: %f \n",exchange);
+
     outfile->Printf("The transformed Fock matrix swarm");
     Fmat->print();
 
@@ -149,6 +166,16 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     outfile->Printf("The transformed Fock matrix swarm");
     Fmat->print();
 
+    temp->transform(Clmat,Fmat,Crmat);
+    temp->print();
+    for(int h = 0; h < nirreps_; h++){
+        for(int i = 0; i < occpiv[h]; i++){
+            outfile->Printf("h: %3i, nirreps: %3i \n",h,nirreps_);
+            exchange += 2*temp->get(h,i,i); 
+        }
+    }
+    
+    tFock_energy = exchange;
 
     return Fmat;
 }

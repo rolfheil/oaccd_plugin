@@ -72,6 +72,8 @@ protected:
 
     //Energies etc.
     double oaccd_energy;
+    double tF_energy; //Transformed reference energy
+    double nuc_energy; //Nuclear repulsion energy
     double mp2_energy;
     double ccd_energy;
     double omega_norm;
