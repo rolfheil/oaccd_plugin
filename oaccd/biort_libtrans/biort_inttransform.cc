@@ -93,18 +93,18 @@ void BiortIntTransform::initialize()
 {
     print_         = Process::environment.options.get_int("PRINT");
     printTei_      = print_ > 5;
-    useIWL_        = outputType_ == IWLAndDPD || outputType_ == IWLOnly;
-    useDPD_        = outputType_ == IWLAndDPD || outputType_ == DPDOnly;
-    iwlAAIntFile_  = transformationType_ == Restricted ? PSIF_MO_TEI : PSIF_MO_AA_TEI;
-    iwlABIntFile_  = transformationType_ == Restricted ? PSIF_MO_TEI : PSIF_MO_AB_TEI;
-    iwlBBIntFile_  = transformationType_ == Restricted ? PSIF_MO_TEI : PSIF_MO_BB_TEI;
+    useIWL_        = outputType_ == OutputType::IWLAndDPD || outputType_ == OutputType::IWLOnly;
+    useDPD_        = outputType_ == OutputType::IWLAndDPD || outputType_ == OutputType::DPDOnly;
+    iwlAAIntFile_  = transformationType_ == TransformationType::Restricted ? PSIF_MO_TEI : PSIF_MO_AA_TEI;
+    iwlABIntFile_  = transformationType_ == TransformationType::Restricted ? PSIF_MO_TEI : PSIF_MO_AB_TEI;
+    iwlBBIntFile_  = transformationType_ == TransformationType::Restricted ? PSIF_MO_TEI : PSIF_MO_BB_TEI;
 
     outfile->Printf("\n Heart of the Swarm \n\n");
 
     tpdm_buffer_ = 0;
 
     aQT_ = init_int_array(nmo_);
-    if(transformationType_ == Restricted){
+    if(transformationType_ == TransformationType::Restricted){
         reorder_qt(clsdpi_, openpi_, frzcpi_, frzvpi_, aQT_, mopi_, nirreps_);
         bQT_ = aQT_;
     }else{
@@ -115,7 +115,7 @@ void BiortIntTransform::initialize()
     // the reference contributions are already folded into the TPDM.  However, they don't include frozen
     // virtuals
     aCorrToPitzer_ = init_int_array(nmo_);
-    if(transformationType_ != Restricted){
+    if(transformationType_ != TransformationType::Restricted){
         bCorrToPitzer_ = init_int_array(nmo_);
     }else{
         bCorrToPitzer_ = aCorrToPitzer_;
@@ -129,7 +129,7 @@ void BiortIntTransform::initialize()
                 // This is active, count it
                 int q = aQT_[pitzerCount];
                 aCorrToPitzer_[q] = pitzerCount - nFzvFound;
-                if(transformationType_ != Restricted){
+                if(transformationType_ != TransformationType::Restricted){
                     int q = bQT_[pitzerCount];
                     bCorrToPitzer_[q] = pitzerCount - nFzvFound;
                 }
@@ -171,7 +171,7 @@ void BiortIntTransform::initialize()
     dpd_init(myDPDNum_, nirreps_, memory_, 0, cacheFiles_, cacheList_, NULL, numSpaces, spaceArray_);
 
     // We have to redefine the MO coefficients for a UHF-like treatment
-    if(transformationType_ == SemiCanonical){
+    if(transformationType_ == TransformationType::SemiCanonical){
         throw PSIEXCEPTION("Semicanonical is deprecated in Libtrans. Please pre-semicanonicalize before passing to libtrans.");
         //wfn_->semicanonicalize();
         Cb_ = wfn_->Cb();
@@ -193,7 +193,7 @@ BiortIntTransform::~BiortIntTransform()
         free(zeros_);
         free(aQT_);
         free(aCorrToPitzer_);
-        if(transformationType_ != Restricted){
+        if(transformationType_ != TransformationType::Restricted){
             free(bQT_);
             free(bCorrToPitzer_);
         }

@@ -52,10 +52,10 @@ public:
                           SharedMatrix rCa,
                           SharedMatrix lCb,
                           SharedMatrix rCb,
-                          TransformationType transformationType = Restricted,
-                          OutputType outputType = DPDOnly,
-                          MOOrdering moOrdering = QTOrder,
-                          FrozenOrbitals frozenOrbitals = OccAndVir,
+                          TransformationType transformationType = TransformationType::Restricted,
+                          OutputType outputType = OutputType::DPDOnly,
+                          MOOrdering moOrdering = MOOrdering::QTOrder,
+                          FrozenOrbitals frozenOrbitals = FrozenOrbitals::OccAndVir,
                           bool initialize = true);
     
     void initialize();

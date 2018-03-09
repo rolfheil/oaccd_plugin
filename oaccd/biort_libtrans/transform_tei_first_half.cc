@@ -86,7 +86,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     /*** AA/AB two-electron integral transformation ***/
 
     if(print_) {
-        if(transformationType_ == Restricted){
+        if(transformationType_ == TransformationType::Restricted){
             outfile->Printf( "\tStarting first half-transformation.\n");
         }else{
             outfile->Printf( "\tStarting AA/AB first half-transformation.\n");
@@ -103,9 +103,9 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
 
  
     int braCore = DPD_ID("[n>=n]+");
-    int ketCore = DPD_ID(s1, s2, Alpha, false);
+    int ketCore = DPD_ID(s1, s2, SpinType::Alpha, false);
     int braDisk = DPD_ID("[n>=n]+");
-    int ketDisk = DPD_ID(s1, s2, Alpha, false);//Changed this one.
+    int ketDisk = DPD_ID(s1, s2, SpinType::Alpha, false);//Changed this one.
     sprintf(label, "Half-Transformed Ints (nn|%c%c)", toupper(s1->label()), toupper(s2->label()));
     global_dpd_->buf4_init(&K, PSIF_HALFT0, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
  
@@ -180,7 +180,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     global_dpd_->buf4_close(&J);
 
     if(print_) {
-        if(transformationType_ == Restricted){
+        if(transformationType_ == TransformationType::Restricted){
             outfile->Printf( "\tSorting half-transformed integrals.\n");
         }else{
             outfile->Printf( "\tSorting AA/AB half-transformed integrals.\n");
@@ -191,7 +191,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     psio_->open(aHtIntFile_, PSIO_OPEN_NEW);
 
     braCore = braDisk = DPD_ID("[n>=n]+");
-    ketCore = ketDisk = DPD_ID(s1, s2, Alpha, false); //changed this one
+    ketCore = ketDisk = DPD_ID(s1, s2, SpinType::Alpha, false); //changed this one
     sprintf(label, "Half-Transformed Ints (nn|%c%c)", toupper(s1->label()), toupper(s2->label()));
     global_dpd_->buf4_init(&K, PSIF_HALFT0, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
     if(print_ > 5)
@@ -206,7 +206,7 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
     psio_->close(aHtIntFile_, 1);
     psio_->close(PSIF_HALFT0, 0);
 
-    if(transformationType_ != Restricted){
+    if(transformationType_ != TransformationType::Restricted){
         /*** BB two-electron integral transformation ***/
         if(print_) {
             outfile->Printf( "\tStarting BB first half-transformation.\n");
@@ -219,9 +219,9 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
                       DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
 
         braCore = DPD_ID("[n,n]");
-        ketCore = DPD_ID(s1, s2, Beta, false);
+        ketCore = DPD_ID(s1, s2, SpinType::Beta, false);
         braDisk = DPD_ID("[n,n]");
-        ketDisk = DPD_ID(s1, s2, Beta, true);
+        ketDisk = DPD_ID(s1, s2, SpinType::Beta, true);
         sprintf(label, "Half-Transformed Ints (nn|%c%c)", tolower(s1->label()), tolower(s2->label()));
         global_dpd_->buf4_init(&K, PSIF_HALFT0, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
         if(print_ > 5)
@@ -302,9 +302,9 @@ BiortIntTransform::transform_tei_first_half(const std::shared_ptr<MOSpace> s1, c
         psio_->open(bHtIntFile_, PSIO_OPEN_NEW);
 
         braCore = DPD_ID("[n,n]");
-        ketCore = DPD_ID(s1, s2, Beta, true);
+        ketCore = DPD_ID(s1, s2, SpinType::Beta, true);
         braDisk = DPD_ID("[n,n]");
-        ketDisk = DPD_ID(s1, s2, Beta, true);
+        ketDisk = DPD_ID(s1, s2, SpinType::Beta, true);
         sprintf(label, "Half-Transformed Ints (nn|%c%c)", tolower(s1->label()), tolower(s2->label()));
         global_dpd_->buf4_init(&K, PSIF_HALFT0, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
         if(print_ > 5)

@@ -54,7 +54,7 @@ namespace psi{ namespace oaccd {
  */
 void BiortIntTransform::update_orbitals()
 {
-    if(transformationType_ == SemiCanonical){
+    if(transformationType_ == TransformationType::SemiCanonical){
         throw FeatureNotImplemented("Libtrans", " update of semicanonical orbitals",
                                     __FILE__, __LINE__);
     }
@@ -109,7 +109,7 @@ void BiortIntTransform::process_eigenvectors()
             rCa = rCa_->get_block({zero,sopi_},{zero,focc});
             lCa->set_name("Left alpha frozen occupied orbitals");
             rCa->set_name("Right alpha frozen occupied orbitals");
-            if(transformationType_ != Restricted){
+            if(transformationType_ != TransformationType::Restricted){
                 lCb = lCb_->get_block({zero,sopi_},{zero,focc});
                 rCb = rCb_->get_block({zero,sopi_},{zero,focc});
                 lCb->set_name("Left beta frozen occupied orbitals");
@@ -121,7 +121,7 @@ void BiortIntTransform::process_eigenvectors()
             rCa = rCa_->get_block({zero,sopi_},{focc,focc + aocc});
             lCa->set_name("Left alpha occupied orbitals");
             rCa->set_name("Right alpha occupied orbitals");
-            if(transformationType_ != Restricted){
+            if(transformationType_ != TransformationType::Restricted){
                 lCb = lCb_->get_block({zero,sopi_},{focc,focc + bocc});
                 rCb = rCb_->get_block({zero,sopi_},{focc,focc + bocc});
                 lCb->set_name("Left beta occupied orbitals");
@@ -133,7 +133,7 @@ void BiortIntTransform::process_eigenvectors()
             rCa = rCa_->get_block({zero,sopi_},{focc,focc + aall});
             lCa->set_name("All left alpha orbitals");
             rCa->set_name("All right alpha orbitals");
-            if(transformationType_ != Restricted){
+            if(transformationType_ != TransformationType::Restricted){
                 lCb = lCb_->get_block({zero,sopi_},{focc,focc + ball});
                 rCb = rCb_->get_block({zero,sopi_},{focc,focc + ball});
                 lCb->set_name("All left beta orbitals");
@@ -141,7 +141,7 @@ void BiortIntTransform::process_eigenvectors()
             }
         }else if(moSpace->label() == MOSPACE_VIR){
             // This is the virtual space
-            if(transformationType_ == Restricted){
+            if(transformationType_ == TransformationType::Restricted){
                 // Take the true virtual orbitals, and then append the SOCC orbitals
                 std::vector<SharedMatrix> lvirandsoc;
                 std::vector<SharedMatrix> rvirandsoc;
@@ -169,7 +169,7 @@ void BiortIntTransform::process_eigenvectors()
             rCa = rCa_->get_block({zero,sopi_},{mopi_ - frzvpi_,mopi_});
             lCa->set_name("Left alpha frozen virtual orbitals");
             rCa->set_name("Right alpha frozen virtual orbitals");
-            if(transformationType_ != Restricted){
+            if(transformationType_ != TransformationType::Restricted){
                 lCb = lCb_->get_block({zero,sopi_},{mopi_ - frzvpi_,mopi_});
                 rCb = rCb_->get_block({zero,sopi_},{mopi_ - frzvpi_,mopi_});
                 lCb->set_name("Left beta frozen virtual orbitals");
@@ -212,7 +212,7 @@ void BiortIntTransform::process_eigenvectors()
                     }
                 }
             }
-            if(transformationType_ != Restricted){
+            if(transformationType_ != TransformationType::Restricted){
                 name = "Beta orbitals for space " + std::string(1, label);
                 lCb = SharedMatrix(new Matrix(name, nirreps_, sopi_, bOrbsPI_[label]));
                 rCb = SharedMatrix(new Matrix(name, nirreps_, sopi_, bOrbsPI_[label]));
@@ -232,8 +232,8 @@ void BiortIntTransform::process_eigenvectors()
             }
         }
 
-        if(transformationType_ == Restricted) lCb = lCa;
-        if(transformationType_ == Restricted) rCb = rCa;
+        if(transformationType_ == TransformationType::Restricted) lCb = lCa;
+        if(transformationType_ == TransformationType::Restricted) rCb = rCa;
 
         laMOCoefficients_[moSpace->label()] = lCa;
         raMOCoefficients_[moSpace->label()] = rCa;
@@ -244,7 +244,7 @@ void BiortIntTransform::process_eigenvectors()
             outfile->Printf( "Orbitals for space %c:-\n",moSpace->label());
             lCa->print();
             rCa->print();
-            if (transformationType_ != Restricted)
+            if (transformationType_ != TransformationType::Restricted)
                 lCb->print();
                 rCb->print();
             outfile->Printf( "\n\n");

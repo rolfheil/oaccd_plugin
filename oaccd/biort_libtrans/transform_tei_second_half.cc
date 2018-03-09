@@ -95,7 +95,7 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     double **TMP = block_matrix(nso_, nso_);
 
     if(print_) {
-        if(transformationType_ == Restricted){
+        if(transformationType_ == TransformationType::Restricted){
             outfile->Printf( "\tStarting second half-transformation.\n");
         }else{
             outfile->Printf( "\tStarting AA second half-transformation.\n");
@@ -107,8 +107,8 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
     psio_->open(dpdIntFile_, PSIO_OPEN_OLD);
     psio_->open(aHtIntFile_, PSIO_OPEN_OLD);
 
-    int braCore = DPD_ID(s1, s2, Alpha, false); 
-    int braDisk = DPD_ID(s1, s2, Alpha, false); 
+    int braCore = DPD_ID(s1, s2, SpinType::Alpha, false); 
+    int braDisk = DPD_ID(s1, s2, SpinType::Alpha, false); 
     int ketCore = DPD_ID("[n,n]");
     int ketDisk = DPD_ID("[n>=n]+");
 
@@ -119,10 +119,10 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
         outfile->Printf( "Initializing %s, in core:(%d|%d) on disk(%d|%d)\n",
                             label, braCore, ketCore, braDisk, ketDisk);
 
-    braCore = DPD_ID(s1, s2, Alpha, false); 
-    ketCore = DPD_ID(s3, s4, Alpha, false);
-    braDisk = DPD_ID(s1, s2, Alpha, false); 
-    ketDisk = DPD_ID(s3, s4, Alpha, false); 
+    braCore = DPD_ID(s1, s2, SpinType::Alpha, false); 
+    ketCore = DPD_ID(s3, s4, SpinType::Alpha, false);
+    braDisk = DPD_ID(s1, s2, SpinType::Alpha, false); 
+    ketDisk = DPD_ID(s3, s4, SpinType::Alpha, false); 
     if(aaIntName_.length())
         strcpy(label, aaIntName_.c_str());
     else
@@ -226,14 +226,14 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
         delete iwl;
     }
 
-    if(transformationType_ != Restricted){
+    if(transformationType_ != TransformationType::Restricted){
         if(print_) {
             outfile->Printf( "\tStarting AB second half-transformation.\n");
 
         }
         if(useIWL_) iwl = new IWL(psio_.get(), iwlABIntFile_, tolerance_, 0, 0);
 
-        braCore = braDisk = DPD_ID(s1, s2, Alpha, true);
+        braCore = braDisk = DPD_ID(s1, s2, SpinType::Alpha, true);
         ketCore = DPD_ID("[n,n]");
         ketDisk = DPD_ID("[n,n]");
         sprintf(label, "Half-Transformed Ints (%c%c|nn)", toupper(s1->label()), toupper(s2->label()));
@@ -242,10 +242,10 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
             outfile->Printf( "Initializing %s, in core:(%d|%d) on disk(%d|%d)\n",
                                 label, braCore, ketCore, braDisk, ketDisk);
 
-        braCore = DPD_ID(s1, s2, Alpha, true);
-        ketCore = DPD_ID(s3, s4, Beta,  false);
-        braDisk = DPD_ID(s1, s2, Alpha, true);
-        ketDisk = DPD_ID(s3, s4, Beta,  true);
+        braCore = DPD_ID(s1, s2, SpinType::Alpha, true);
+        ketCore = DPD_ID(s3, s4, SpinType::Beta,  false);
+        braDisk = DPD_ID(s1, s2, SpinType::Alpha, true);
+        ketDisk = DPD_ID(s3, s4, SpinType::Beta,  true);
         if(abIntName_.length())
             strcpy(label, abIntName_.c_str());
         else
@@ -352,9 +352,9 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
 
         psio_->open(bHtIntFile_, PSIO_OPEN_OLD);
 
-        braCore = DPD_ID(s1, s2, Beta, true);
+        braCore = DPD_ID(s1, s2, SpinType::Beta, true);
         ketCore = DPD_ID("[n,n]");
-        braDisk = DPD_ID(s1, s2, Beta, true);
+        braDisk = DPD_ID(s1, s2, SpinType::Beta, true);
         ketDisk = DPD_ID("[n,n]");
         sprintf(label, "Half-Transformed Ints (%c%c|nn)", tolower(s1->label()), tolower(s2->label()));
         global_dpd_->buf4_init(&J, bHtIntFile_, 0, braCore, ketCore, braDisk, ketDisk, 0, label);
@@ -362,10 +362,10 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
             outfile->Printf( "Initializing %s, in core:(%d|%d) on disk(%d|%d)\n",
                                 label, braCore, ketCore, braDisk, ketDisk);
 
-        braCore = DPD_ID(s1, s2, Beta, true);
-        ketCore = DPD_ID(s3, s4, Beta, false);
-        braDisk = DPD_ID(s1, s2, Beta, true);
-        ketDisk = DPD_ID(s3, s4, Beta, true);
+        braCore = DPD_ID(s1, s2, SpinType::Beta, true);
+        ketCore = DPD_ID(s3, s4, SpinType::Beta, false);
+        braDisk = DPD_ID(s1, s2, SpinType::Beta, true);
+        ketDisk = DPD_ID(s3, s4, SpinType::Beta, true);
         if(bbIntName_.length())
             strcpy(label, bbIntName_.c_str());
         else

@@ -54,37 +54,37 @@ void Oaccd::int_trans_rhf(){
     //Transform to (OO|OO), must write a new transform class for NO transformations
     timer_on("Trans (OO|OO)");
     ints->transform_tei(MOSpace::occ, MOSpace::occ, MOSpace::occ, MOSpace::occ, 
-                        IntegralTransform::MakeAndNuke);
+                        IntegralTransform::HalfTrans::MakeAndNuke);
     timer_off("Trans (OO|OO)");
 
     //Transform to (VO|VO)
     timer_on("Trans (VO|VO)");
     ints->transform_tei(MOSpace::vir, MOSpace::occ, MOSpace::vir, MOSpace::occ, 
-                        IntegralTransform::MakeAndKeep);
+                        IntegralTransform::HalfTrans::MakeAndKeep);
     timer_off("Trans (VO|VO)");
 
     //Transform to (VO|OV)
     timer_on("Trans (VO|OV)");
     ints->transform_tei(MOSpace::vir, MOSpace::occ, MOSpace::occ, MOSpace::vir, 
-                        IntegralTransform::ReadAndNuke);
+                        IntegralTransform::HalfTrans::ReadAndNuke);
     timer_off("Trans (VO|OV)");
 
     //Transform to (OV|OV)
     timer_on("Trans (OV|OV)");
     ints->transform_tei(MOSpace::occ, MOSpace::vir, MOSpace::occ, MOSpace::vir, 
-                        IntegralTransform::MakeAndNuke);
+                        IntegralTransform::HalfTrans::MakeAndNuke);
     timer_off("Trans (OV|OV)");
 
     //Transform to (VV|OO)
     timer_on("Trans (VV|OO)");
     ints->transform_tei(MOSpace::vir, MOSpace::vir, MOSpace::occ, MOSpace::occ, 
-                        IntegralTransform::MakeAndKeep);
+                        IntegralTransform::HalfTrans::MakeAndKeep);
     timer_off("Trans (VV|OO)");
 
     //Transform to (VV|VV)
     timer_on("Trans (VV|VV)");
     ints->transform_tei(MOSpace::vir, MOSpace::vir, MOSpace::vir, MOSpace::vir, 
-                        IntegralTransform::ReadAndNuke);
+                        IntegralTransform::HalfTrans::ReadAndNuke);
     timer_off("Trans (VV|VV)");
 
     //DPD needs both contracted indices in either row or column, so sort the integrals. 
@@ -179,7 +179,7 @@ void Oaccd::f_denominator(){
     dpdfile2 F;
 
     //Transform the Fock matrix to MO basis
-    FockA = Fa_;
+    FockA = tFa_;
     outfile->Printf("\n Original Fock matrix lalala\n ");
     Fa_->print();
     outfile->Printf("\n One electron integrals\n ");

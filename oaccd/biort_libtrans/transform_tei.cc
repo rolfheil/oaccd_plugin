@@ -60,10 +60,10 @@ BiortIntTransform::transform_tei(const std::shared_ptr<MOSpace> s1, const std::s
 {
     check_initialized();
     // Only do the first half if the "make" flag is set
-    if(ht == MakeAndKeep || ht == MakeAndNuke)
+    if(ht == HalfTrans::MakeAndKeep || ht == HalfTrans::MakeAndNuke)
         transform_tei_first_half(s1, s2);
 
-    if(ht == ReadAndNuke || ht == MakeAndNuke){
+    if(ht == HalfTrans::ReadAndNuke || ht == HalfTrans::MakeAndNuke){
         keepHtInts_ = false;
     }else{
         keepHtInts_ = true;

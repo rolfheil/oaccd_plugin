@@ -81,7 +81,7 @@ void Oaccd::common_init()
 
     //Set up some reference energy stuff that we'll need when changing basis
     tF_energy = energy_;
-    nuc_energy = reference_wavefunction_->molecule()->nuclear_repulsion_energy();
+    nuc_energy = reference_wavefunction_->molecule()->nuclear_repulsion_energy(reference_wavefunction_->get_dipole_field_strength());
         
 
     Fa_->print();
@@ -174,6 +174,12 @@ void Oaccd::common_init()
 
             U_m = std::shared_ptr<Matrix>(
                    new Matrix(U_p));
+
+/*            kappa->set(0, 3,0, 0.000023187740);
+            kappa->set(0, 3,1,-0.000988382087);
+            kappa->set(0, 3,2, 0.010371795264);
+
+            kappa->set(2, 1,0,-0.003295502210);*/
 
             /*
             kappa->set(0, 5,0,-0.000108178);
@@ -317,10 +323,10 @@ double Oaccd::compute_energy()
     std::vector<std::shared_ptr<MOSpace>> spaces = {MOSpace::occ, MOSpace::vir};
     ints = new BiortIntTransform(shared_from_this(), spaces,
                lCa(), rCa(), lCb(), rCb(),
-               IntegralTransform::Restricted,
-               IntegralTransform::DPDOnly,
-               IntegralTransform::QTOrder,
-               IntegralTransform::None,
+               IntegralTransform::TransformationType::Restricted,
+               IntegralTransform::OutputType::DPDOnly,
+               IntegralTransform::MOOrdering::QTOrder,
+               IntegralTransform::FrozenOrbitals::None,
                initialize);
 
     ints->set_dpd_id(0);    
