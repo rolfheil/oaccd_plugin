@@ -135,11 +135,13 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     int delta_off = 0;
     outfile->Printf("h: %3i, nirreps: %3i \n",h,nirreps_);
 
-    pDmat = Dmat->pointer(h);  
+    pDmat = Dmat->pointer(3);  
+//    outfile->Printf("pdmat: %12.6f \n", pDmat[0][0]);
+    pDmat = Dmat->pointer(0);  
 
     for(int h_delta = 0; h_delta < nirreps_; h_delta++){
-        pFmat = Fmat->pointer(h_delta);  
         if(!sopi_[h_delta] || !sopi_[h] ) continue;
+        pFmat = Fmat->pointer(h_delta);  
 
         global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_delta]);
        
@@ -155,6 +157,9 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                 }
                 outfile->Printf("\n");
            }
+           outfile->Printf("\n");
+           outfile->Printf("\n");
+           outfile->Printf("\n");
            for(int n=0; n<sopi_[h]; n++){
                 for(int m=0; m<sopi_[h]; m++){
                         outfile->Printf("%10.6f", pDmat[n][m]);
@@ -170,9 +175,16 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                 outfile->Printf("\n");
            }
            outfile->Printf("\n");
-           C_DGEMV('N', sopi_[h_delta], J.params->rowtot[h], 2.0, &J.matrix[h][0][0], J.params->rowtot[h], pDmat[h], 1, 1.0,&pFmat[0][delta],sopiv[h_delta]);
-           C_DGEMV('T', J.params->rowtot[h], sopi_[h_delta],-1.0, &J.matrix[h][0][0], sopi_[h_delta],pDmat[h], 1, 1.0, pFmat[delta],1);
-           
+           for(int h_alpha = 0; h_alpha < nirreps_; h_alpha++ ){
+               if(!sopi_[h_alpha]) continue;
+                outfile->Printf("h_alpha: %3i, sopi[h_alpha]: %3i \n",h_alpha,sopi_[h_alpha]);
+                pDmat = Dmat->pointer(h_alpha);  
+                outfile->Printf("pdmat: %12.6f \n", pDmat[0][0]);
+                //C_DGEMV('N', sopi_[h_delta], sopi_[h_alpha]*sopi_[h_alpha], 2.0, &J.matrix[h][0][h_alpha], J.params->rowtot[h],
+                //         pDmat[h_alpha], 1, 1.0,&pFmat[0][delta],sopiv[h_delta]);
+               // C_DGEMV('T', J.params->rowtot[h], sopi_[h_delta],-1.0, &J.matrix[h][0][0], sopi_[h_delta],pDmat[h], 1, 1.0, pFmat[delta],1);
+                
+           } 
            outfile->Printf("\n");
            outfile->Printf("After swarm \n");
            for(int n=0; n<sopi_[h_delta]; n++){
@@ -182,7 +194,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                 outfile->Printf("\n");
            }
            outfile->Printf("\n");
-       } 
+        }
     }
     global_dpd_->buf4_close(&J);
 
