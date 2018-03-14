@@ -176,14 +176,16 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                     for(int h_alpha = 0; h_alpha < nirreps_; h_alpha++ ){
                         if(!sopi_[h_alpha]) continue;
                          pDmat = Dmat->pointer(h_alpha);  
+                         outfile->Printf("h_alpha: %3i, sopi[h_alpha]: %3i, alpha_off: %3i, Dmat[0]: %7.4f \n",h_alpha,sopi_[h_alpha],alpha_off,pDmat[0][0]);
                          C_DGEMV('N', sopi_[h_delta], sopi_[h_alpha]*sopi_[h_alpha], 2.0, &J.matrix[h][0][alpha_off], J.params->rowtot[h],
                                   pDmat[0], 1, 1.0,&pFmat[0][delta],sopi_[h_delta]);
                          alpha_off = alpha_off + sopi_[h_alpha]*sopi_[h_alpha];
+                         outfile->Printf("\n\n h_alpha: %3i, Fmat[0]: %7.4f, Fmat[1]: %7.4f, Fmat[2]: %7.4f, Fmat[3]: %7.4f \n\n",h_alpha,Fmat->get(0,0,0),Fmat->get(1,0,0));
                     }//end alpha for-loop 
                }//end if statement 
                          
                pDmat = Dmat->pointer(h_gamma);  
-               C_DGEMV('T', sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_delta],-1.0, &J.matrix[h][0][0], sopi_[h_delta],pDmat[0], 1, 1.0, pFmat[delta],1);
+//               C_DGEMV('T', sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_delta],-1.0, &J.matrix[h][0][0], sopi_[h_delta],pDmat[0], 1, 1.0, pFmat[delta],1);
                
                outfile->Printf("\n");
                outfile->Printf("After swarm \n");
