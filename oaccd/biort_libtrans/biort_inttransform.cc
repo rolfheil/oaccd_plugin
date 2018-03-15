@@ -99,8 +99,6 @@ void BiortIntTransform::initialize()
     iwlABIntFile_  = transformationType_ == TransformationType::Restricted ? PSIF_MO_TEI : PSIF_MO_AB_TEI;
     iwlBBIntFile_  = transformationType_ == TransformationType::Restricted ? PSIF_MO_TEI : PSIF_MO_BB_TEI;
 
-    outfile->Printf("\n Heart of the Swarm \n\n");
-
     tpdm_buffer_ = 0;
 
     aQT_ = init_int_array(nmo_);

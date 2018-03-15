@@ -100,28 +100,10 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     Crmat->print();
     Clmat->print();
     Dmat->print();
-    for(int h = 0; h < nirreps_; h++){
-        outfile->Printf("h: %3i,  sopiv: %3i \n",h,sopiv[h]);
-        outfile->Printf("h: %3i, occpiv: %3i \n",h,occpiv[h]);
-    }
+
     Dmat->gemm('N', 'T', sopiv,sopiv,occpiv,1.0,Crmat, sopiv,Clmat,sopiv,0.0,sopiv);
    
     outfile->Printf("The density matrix swarm");
-    Dmat->print();
-/*
-    double** pCrmat;
-    double** pClmat; 
-    double** pDmat;
-    
-    for(int h = 0; h < nirreps_; h++){
-        if(sopi_[h]!= 0 && clsdpi_[h] != 0){
-            pCrmat = Crmat->pointer(h);  
-            pClmat = Clmat->pointer(h); 
-            pDmat = Dmat->pointer(h); 
-            C_DGEMM('N', 'T', sopi_[h],sopi_[h],clsdpi_[h],1.0,pCrmat[0], sopi_[h],pClmat[0],sopi_[h],0.0, pDmat[0], sopi_[h]);
-        }
-    }*/
-    outfile->Printf("The density matrix swarms again");
     Dmat->print();
 
     //Open the DPD file with integrals
@@ -129,63 +111,76 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n,n]"), DPD_ID("[n,n]"),
                            DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
 
-    int h = 0;
     double **pFmat;
     double **pDmat;
     int delta_off;
+    int alpha_tot;
     int alpha_off;
+    int alpha_off2;
     int h_gamma;
-    outfile->Printf("h: %3i, nirreps: %3i \n",h,nirreps_);
 
     for(int h = 0; h < nirreps_; h++){
+        delta_off = 0;
         for(int h_delta = 0; h_delta < nirreps_; h_delta++){
             h_gamma = h^h_delta;
 
             if(!sopi_[h_delta] || !sopi_[h] || !sopi_[h_gamma]) continue;
            
-            delta_off = 0;
             pFmat = Fmat->pointer(h_delta);  
             global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_gamma]);
+
+            alpha_off = 0;
+            alpha_tot = 0;
+            for(int h_alpha=0; h_alpha < nirreps_; h_alpha++){
+                for(int h_beta=0; h_beta < nirreps_; h_beta++){
+                    if((h_alpha^h_beta) == h && sopi_[h_beta]){
+                        alpha_tot = alpha_tot + sopi_[h_alpha];
+                        if(h_alpha < h_delta) alpha_off = alpha_off + sopi_[h_alpha];
+                    }
+                }
+            }
            
-           for(int delta = 0; delta < sopiv[h_delta]; delta++){
+            outfile->Printf("\nh: %3i, h_delta: %3i, h_gamma: %3i, alpha_off: %3i, alpha_tot: %3i, rowtot: %3i, sopi^2: %3i , off+sopi^2: %3i \n",h,h_delta,h_gamma,alpha_off,alpha_tot,J.params->rowtot[h], sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_gamma]*sopi_[h_gamma]+alpha_off);
+            for(int delta = 0; delta < sopiv[h_delta]; delta++){
  
-               outfile->Printf("h: %3i, h_delta: %3i, delta: %3i, sopiv[h_delta]: %3i, delta_off: %3i \n",h,h_delta,delta, sopiv[h_delta], delta_off);
-               global_dpd_->buf4_mat_irrep_rd_block(&J, h, delta_off, sopiv[h_gamma]);
-               delta_off = delta_off + sopi_[h_gamma];
-               outfile->Printf("\n");
-/*             for(int n=0; n<sopi_[h_delta]; n++){
+                global_dpd_->buf4_mat_irrep_rd_block(&J, h, delta_off, sopiv[h_gamma]);
+                delta_off = delta_off + sopi_[h_gamma];
+
+                outfile->Printf("\n");
+                outfile->Printf("\n");
+                outfile->Printf("Spamelam\n");
+                for(int n=0; n<sopi_[h_gamma]; n++){
                     for(int m=0; m<J.params->rowtot[h]; m++){
-                            outfile->Printf("%10.6f", J.matrix[h][n][m]);
+                        outfile->Printf("%10.6f", J.matrix[h][n][m]);
                     }
                     outfile->Printf("\n");
                }
-               outfile->Printf("\n");
-               outfile->Printf("\n");*/
-               outfile->Printf("Before swarm\n");
-               for(int n=0; n<sopi_[h_delta]; n++){
+                outfile->Printf("\n");
+                outfile->Printf("\n");
+                outfile->Printf("Before swarm\n");
+                for(int n=0; n<sopi_[h_delta]; n++){
                     for(int m=0; m<sopi_[h_delta]; m++){
-                            outfile->Printf("%10.6f", pFmat[n][m]);
+                        outfile->Printf("%10.6f", pFmat[n][m]);
                     }
                     outfile->Printf("\n");
                }
                outfile->Printf("\n");
                outfile->Printf("\n");
 
-               alpha_off = 0;
-               if(h == 0){
+                alpha_off2 = 0;
+                if(h == 0){
                     for(int h_alpha = 0; h_alpha < nirreps_; h_alpha++ ){
-                        if(!sopi_[h_alpha]) continue;
-                         pDmat = Dmat->pointer(h_alpha);  
-                         outfile->Printf("h_alpha: %3i, sopi[h_alpha]: %3i, alpha_off: %3i, Dmat[0]: %7.4f \n",h_alpha,sopi_[h_alpha],alpha_off,pDmat[0][0]);
-                         C_DGEMV('N', sopi_[h_delta], sopi_[h_alpha]*sopi_[h_alpha], 2.0, &J.matrix[h][0][alpha_off], J.params->rowtot[h],
-                                  pDmat[0], 1, 1.0,&pFmat[0][delta],sopi_[h_delta]);
-                         alpha_off = alpha_off + sopi_[h_alpha]*sopi_[h_alpha];
-                         outfile->Printf("\n\n h_alpha: %3i, Fmat[0]: %7.4f, Fmat[1]: %7.4f, Fmat[2]: %7.4f, Fmat[3]: %7.4f \n\n",h_alpha,Fmat->get(0,0,0),Fmat->get(1,0,0));
-                    }//end alpha for-loop 
-               }//end if statement 
+                    if(!sopi_[h_alpha]) continue;
+                        pDmat = Dmat->pointer(h_alpha);  
+//                        C_DGEMV('N', sopi_[h_delta], sopi_[h_alpha]*sopi_[h_alpha], 2.0, &J.matrix[h][0][alpha_off2], J.params->rowtot[h],
+//                                pDmat[0], 1, 1.0,&pFmat[0][delta],sopi_[h_delta]);
+                        alpha_off2 = alpha_off2 + sopi_[h_alpha]*sopi_[h_alpha];
+                    }//end alpha for-loop     
+                }//end if statement 
+
+                pDmat = Dmat->pointer(h_gamma);  
+                C_DGEMV('T', sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_delta],-1.0, &J.matrix[h][0][alpha_off], alpha_tot,pDmat[0], 1, 1.0, pFmat[delta],1);
                          
-               pDmat = Dmat->pointer(h_gamma);  
-//               C_DGEMV('T', sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_delta],-1.0, &J.matrix[h][0][0], sopi_[h_delta],pDmat[0], 1, 1.0, pFmat[delta],1);
                
                outfile->Printf("\n");
                outfile->Printf("After swarm \n");
@@ -194,11 +189,11 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                             outfile->Printf("%10.6f", pFmat[n][m]);
                     }
                     outfile->Printf("\n");
-               }
-               outfile->Printf("\n");
+                }
+                outfile->Printf("\n");
 
-           }// end delta loop
-       } //end h_delta loop
+            }// end delta loop
+        } //end h_delta loop
     } //end h loop
     global_dpd_->buf4_close(&J);
 

@@ -261,8 +261,6 @@ void Oaccd::common_init()
         outfile->Printf("rCa_");
         rCa_->print();
 
-        outfile->Printf("swarms \n");
-
         lCb_ = std::shared_ptr<Matrix>(
                new Matrix(S_));
         outfile->Printf("S overlap matrix");
@@ -331,8 +329,6 @@ double Oaccd::compute_energy()
 
     ints->set_dpd_id(0);    
     ints->set_keep_dpd_so_ints(true);
-
-    outfile->Printf("\n Swarm here and now \n\n");
 
     ints->initialize();
     dpd_set_default(ints->get_dpd_id());
