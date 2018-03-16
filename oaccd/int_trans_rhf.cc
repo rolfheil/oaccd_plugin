@@ -101,8 +101,6 @@ void Oaccd::int_trans_rhf(){
     timer_on("Sort (OO|OO) (l,j,k,i) -> (i,j,k,l)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[O,O]"),
                  ID("[O,O]"), ID("[O,O]"), 0, "MO Ints (OO|OO)");
-//    outfile->Printf("OOOO integrals");
-//    global_dpd_->buf4_print(&K,"tull3",1);   
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , sqrp, ID("[O,O]"), ID("[O,O]"), "(OO|OO) (i,j,k,l)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (OO|OO) (l,j,k,i) -> (i,j,k,l)");
@@ -112,8 +110,6 @@ void Oaccd::int_trans_rhf(){
     timer_on("Sort (VV|VV) (a,b,c,d) -> (a,c,b,d)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[V,V]"),
                  ID("[V,V]"), ID("[V,V]"), 0, "MO Ints (VV|VV)");
- //   outfile->Printf("VVVV integrals");
- //   global_dpd_->buf4_print(&K,"tull2",1);   
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[V,V]"), ID("[V,V]"), "(VV|VV) (a,c,b,d)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VV|VV) (a,b,c,d) -> (a,c,b,d)");
@@ -123,8 +119,6 @@ void Oaccd::int_trans_rhf(){
     timer_on("Sort (VV|OO) (a,b,i,j) -> (j,a,i,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[O,O]"),
                  ID("[V,V]"), ID("[O,O]"), 0, "MO Ints (VV|OO)");
-   // outfile->Printf("VVOO integrals");
-   // global_dpd_->buf4_print(&K,"tull2",1);   
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD, sprq, ID("[O,V]"), ID("[O,V]"), "(VV|OO) (j,a,i,b)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VV|OO) (a,b,i,j) -> (j,a,i,b)");
@@ -135,8 +129,6 @@ void Oaccd::int_trans_rhf(){
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[V,O]"),
                  ID("[V,O]"), ID("[V,O]"), 0, "MO Ints (VO|VO)");
     
-   // outfile->Printf("VOVO integrals");
-   // global_dpd_->buf4_print(&K,"tull",1);   
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , sqrp , ID("[O,O]"), ID("[V,V]"), "(VO|VO) (i,j,a,b)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VO|VO) (b,j,a,i) -> (i,j,a,b)");
@@ -146,8 +138,6 @@ void Oaccd::int_trans_rhf(){
     timer_on("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[O,V]"), ID("[O,V]"),
                  ID("[O,V]"), ID("[O,V]"), 0, "MO Ints (OV|OV)");
-    //outfile->Printf("OVOV integrals");
-    //global_dpd_->buf4_print(&K,"tull1",1);   
     global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , prqs, ID("[O,O]"), ID("[V,V]"), "(OV|OV) (i,j,a,b)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (OV|OV) (i,a,j,b) -> (i,j,a,b)");
@@ -157,9 +147,7 @@ void Oaccd::int_trans_rhf(){
     timer_on("Sort (VO|OV) (a,i,j,b) -> (i,a,j,b)");
     global_dpd_->buf4_init(&K, PSIF_LIBTRANS_DPD, 0, ID("[V,O]"), ID("[O,V]"),
                  ID("[V,O]"), ID("[O,V]"), 0, "MO Ints (VO|OV)");
-    outfile->Printf("VOOV integrals");
-    //global_dpd_->buf4_print(&K,"tull",1);   
-    //global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , qprs, ID("[O,V]"), ID("[O,V]"), "(VO|OV) (i,a,j,b)");
+    global_dpd_->buf4_sort(&K, PSIF_LIBTRANS_DPD , qprs, ID("[O,V]"), ID("[O,V]"), "(VO|OV) (i,a,j,b)");
     global_dpd_->buf4_close(&K);
     timer_off("Sort (VO|OV) (a,i,j,b) -> (i,a,j,b)");
 

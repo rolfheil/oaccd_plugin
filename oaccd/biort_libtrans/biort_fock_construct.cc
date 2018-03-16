@@ -126,7 +126,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
         for(int h_delta = 0; h_delta < nirreps_; h_delta++){
             h_gamma = h^h_delta;
 
-            if(!sopi_[h_delta] || !sopi_[h] || !sopi_[h_gamma]) continue;
+            if(!sopi_[h_delta] || !sopi_[h_gamma]) continue;
            
             pFmat = Fmat->pointer(h_delta);  
             global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_gamma]);
@@ -172,8 +172,8 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                     for(int h_alpha = 0; h_alpha < nirreps_; h_alpha++ ){
                     if(!sopi_[h_alpha]) continue;
                         pDmat = Dmat->pointer(h_alpha);  
-//                        C_DGEMV('N', sopi_[h_delta], sopi_[h_alpha]*sopi_[h_alpha], 2.0, &J.matrix[h][0][alpha_off2], J.params->rowtot[h],
-//                                pDmat[0], 1, 1.0,&pFmat[0][delta],sopi_[h_delta]);
+                        C_DGEMV('N', sopi_[h_delta], sopi_[h_alpha]*sopi_[h_alpha], 2.0, &J.matrix[h][0][alpha_off2], J.params->rowtot[h],
+                                pDmat[0], 1, 1.0,&pFmat[0][delta],sopi_[h_delta]);
                         alpha_off2 = alpha_off2 + sopi_[h_alpha]*sopi_[h_alpha];
                     }//end alpha for-loop     
                 }//end if statement 

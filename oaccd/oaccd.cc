@@ -276,15 +276,6 @@ void Oaccd::common_init()
         outfile->Printf("\n Product of lCa x rCa \n");
         rCb_->print();
 
-/*        rCb_->gemm('N', 'T', nsopi_[0],nsopi_[0],doccpi_[0],1.0,Ca_,nsopi_[0],Ca_,nsopi_[0],0.0,
-                    nsopi_[0],0,0,0);
-        outfile->Printf("\n Product of Ca_o x Ca_o \n");
-        rCb_->print();
-        rCb_->gemm('N', 'T', nsopi_[0],nsopi_[0],doccpi_[0],1.0,rCa_,nsopi_[0],lCa_,nsopi_[0],0.0,
-                    nsopi_[0],0,0,0);
-        outfile->Printf("\n Product of rCa_o x lCa_o \n");
-        rCb_->print();*/
-
         outfile->Printf("\n Alpha density Da_ \n");
         Da_->print();
 
