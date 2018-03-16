@@ -111,11 +111,13 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     global_dpd_->buf4_init(&J, PSIF_SO_PRESORT, 0, DPD_ID("[n,n]"), DPD_ID("[n,n]"),
                            DPD_ID("[n>=n]+"), DPD_ID("[n>=n]+"), 0, "SO Ints (nn|nn)");
 
+//    outfile->Printf("Behold the glory\n");
+//    global_dpd_->buf4_print(&J,"tull3",1);   
     double **pFmat;
     double **pDmat;
     int delta_off;
-    int alpha_tot;
     int alpha_off;
+    int alpha_noff;
     int alpha_off2;
     int h_gamma;
 
@@ -130,17 +132,15 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
             global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_gamma]);
 
             alpha_off = 0;
-            alpha_tot = 0;
-            for(int h_alpha=0; h_alpha < nirreps_; h_alpha++){
-                for(int h_beta=0; h_beta < nirreps_; h_beta++){
-                    if((h_alpha^h_beta) == h && sopi_[h_beta]){
-                        alpha_tot = alpha_tot + sopi_[h_alpha];
-                        if(h_alpha < h_delta) alpha_off = alpha_off + sopi_[h_alpha];
+            for(int h_beta=0; h_beta < h_gamma; h_beta++){
+                for(int h_alpha=0; h_alpha < nirreps_; h_alpha++){
+                    if((h_alpha^h_beta) == h){
+                        alpha_off = alpha_off + sopi_[h_alpha]*sopi_[h_beta];
                     }
                 }
             }
            
-            outfile->Printf("\nh: %3i, h_delta: %3i, h_gamma: %3i, alpha_off: %3i, alpha_tot: %3i, rowtot: %3i, sopi^2: %3i , off+sopi^2: %3i \n",h,h_delta,h_gamma,alpha_off,alpha_tot,J.params->rowtot[h], sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_gamma]*sopi_[h_gamma]+alpha_off);
+            outfile->Printf("\nh: %3i, h_delta: %3i, h_gamma: %3i, alpha_off: %3i \n",h,h_delta,h_gamma,alpha_off);
             for(int delta = 0; delta < sopiv[h_delta]; delta++){
  
                 global_dpd_->buf4_mat_irrep_rd_block(&J, h, delta_off, sopiv[h_gamma]);
@@ -179,7 +179,13 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                 }//end if statement 
 
                 pDmat = Dmat->pointer(h_gamma);  
-                C_DGEMV('T', sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_delta],-1.0, &J.matrix[h][0][alpha_off], alpha_tot,pDmat[0], 1, 1.0, pFmat[delta],1);
+//                alpha_off = 0;
+                for(int gamma = 0; gamma < sopi_[h_gamma]; gamma++){
+                    for(int alpha = 0; alpha < sopi_[h_delta]; alpha++){
+                        pFmat[delta][alpha] -= C_DDOT(sopi_[h_gamma],&J.matrix[h][gamma][alpha+alpha_off],sopi_[h_delta],pDmat[gamma],1);
+//                    C_DGEMV('T', sopi_[h_gamma]*sopi_[h_gamma], sopi_[h_delta],-1.0, &J.matrix[h][0][alpha_off], alpha_tot,pDmat[0], 1, 1.0, pFmat[delta],1);
+                    }
+                }
                          
                
                outfile->Printf("\n");
