@@ -175,11 +175,11 @@ void Oaccd::common_init()
             U_m = std::shared_ptr<Matrix>(
                    new Matrix(U_p));
 
-/*            kappa->set(0, 3,0, 0.000023187740);
+            kappa->set(0, 3,0, 0.000023187740);
             kappa->set(0, 3,1,-0.000988382087);
             kappa->set(0, 3,2, 0.010371795264);
 
-            kappa->set(2, 1,0,-0.003295502210);*/
+            kappa->set(3, 1,0,-0.003295502210);
 
             /*
             kappa->set(0, 5,0,-0.000108178);
