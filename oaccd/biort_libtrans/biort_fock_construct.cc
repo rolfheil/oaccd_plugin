@@ -63,16 +63,13 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     if(!alreadyPresorted_)
         presort_so_tei();
 
-    // Some
-    int nBuckets, thisBucketRows;
-    size_t rowsPerBucket, rowsLeft, memFree;
     dpdbuf4 I;
    
     // Form the Density matrices associated with the C matrices, and allocate the F matrices.
     if(Clmat->rowspi() != sopi_)
-        throw PSIEXCEPTION("Row dimension of C_l matrix is not equal to SOs per irrep in LibTrans::compute_fock_like_matrices()");
+        throw PSIEXCEPTION("Row dimension of C_l matrix is not equal to SOs per irrep in BiortIntTransform::compute_biort_fock_matrix()");
     if(Crmat->rowspi() != sopi_)
-        throw PSIEXCEPTION("Row dimension of C_r matrix is not equal to SOs per irrep in LibTrans::compute_fock_like_matrices()");
+        throw PSIEXCEPTION("Row dimension of C_r matrix is not equal to SOs per irrep in BiortIntTransform::compute_biort_fock_matrix()");
     //SharedMatrix Fmat;
     SharedMatrix Dmat(new Matrix("D matrix", sopi_, sopi_));
     SharedMatrix Fmat(new Matrix("F matrix", sopi_, sopi_));
@@ -83,7 +80,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     int currentActiveDPD = psi::dpd_default;
     dpd_set_default(myDPDNum_);
 
-    //Form the density matrices
+    //Set up some std::vectors for advanced gemm call
     std::vector<int> sopiv(nirreps_);
     std::vector<int> occpiv(nirreps_);
 
@@ -92,6 +89,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
         occpiv[h] = clsdpi_[h];  
     }
 
+    //Construct the density matrix
     Dmat->gemm('N', 'T', sopiv,sopiv,occpiv,1.0,Crmat, sopiv,Clmat,sopiv,0.0,sopiv);
    
     //Open the DPD file with integrals
@@ -106,16 +104,22 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     int alpha_off2;
     int h_gamma;
 
-    for(int h = 0; h < nirreps_; h++){
+    //Calculate F_alpha,beta = sum_gamma,delta D_gamma_delta*(2(alpha,beta|gamma,delta) - (alpha,gamma|beta,delta))
+    //Loop over integral symmetry
+    for(int h = 0; h < nirreps_; h++){  
         delta_off = 0;
+
+        //Loop over last index symmetry in integrals
         for(int h_delta = 0; h_delta < nirreps_; h_delta++){
             h_gamma = h^h_delta;
 
             if(!sopi_[h_delta] || !sopi_[h_gamma]) continue;
            
+            //Allocate space for integrals and set pointer to F matrix
             pFmat = Fmat->pointer(h_delta);  
             global_dpd_->buf4_mat_irrep_init_block(&J, h, sopiv[h_gamma]);
 
+            //Calculcate offset for exchange
             alpha_off = 0;
             for(int h_beta=0; h_beta < h_gamma; h_beta++){
                 for(int h_alpha=0; h_alpha < nirreps_; h_alpha++){
@@ -125,33 +129,14 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                 }
             }
            
-            outfile->Printf("\nh: %3i, h_delta: %3i, h_gamma: %3i, alpha_off: %3i \n",h,h_delta,h_gamma,alpha_off);
+            //Loop over final index in integrals
             for(int delta = 0; delta < sopiv[h_delta]; delta++){
  
+                //Read in all alpha, beta, and gamma for delta
                 global_dpd_->buf4_mat_irrep_rd_block(&J, h, delta_off, sopiv[h_gamma]);
                 delta_off = delta_off + sopi_[h_gamma];
 
-                outfile->Printf("\n");
-                outfile->Printf("\n");
-                outfile->Printf("Spamelam\n");
-                for(int n=0; n<sopi_[h_gamma]; n++){
-                    for(int m=0; m<J.params->rowtot[h]; m++){
-                        outfile->Printf("%10.6f", J.matrix[h][n][m]);
-                    }
-                    outfile->Printf("\n");
-               }
-                outfile->Printf("\n");
-                outfile->Printf("\n");
-                outfile->Printf("Before swarm\n");
-                for(int n=0; n<sopi_[h_delta]; n++){
-                    for(int m=0; m<sopi_[h_delta]; m++){
-                        outfile->Printf("%10.6f", pFmat[n][m]);
-                    }
-                    outfile->Printf("\n");
-               }
-               outfile->Printf("\n");
-               outfile->Printf("\n");
-
+                //Calculate Coulomb part
                 alpha_off2 = 0;
                 if(h == 0){
                     for(int h_alpha = 0; h_alpha < nirreps_; h_alpha++ ){
@@ -163,8 +148,8 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                     }//end alpha for-loop     
                 }//end if statement 
 
+                //Calculate exchange part
                 pDmat = Dmat->pointer(h_gamma);  
-//                alpha_off = 0;
                 for(int gamma = 0; gamma < sopi_[h_gamma]; gamma++){
                     for(int alpha = 0; alpha < sopi_[h_delta]; alpha++){
                         pFmat[delta][alpha] -= C_DDOT(sopi_[h_gamma],&J.matrix[h][gamma][alpha+alpha_off],sopi_[h_delta],pDmat[gamma],1);
@@ -172,16 +157,6 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                 }
                          
                
-               outfile->Printf("\n");
-               outfile->Printf("After swarm \n");
-               for(int n=0; n<sopi_[h_delta]; n++){
-                    for(int m=0; m<sopi_[h_delta]; m++){
-                            outfile->Printf("%10.6f", pFmat[n][m]);
-                    }
-                    outfile->Printf("\n");
-                }
-                outfile->Printf("\n");
-
             }// end delta loop
         } //end h_delta loop
     } //end h loop
@@ -192,6 +167,7 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     // Hand DPD control back to the user
     dpd_set_default(currentActiveDPD);
 
+    //Calculate new reference energy and add OEIs
     temp->transform(Clmat,Fmat,Crmat);
     double exchange = 0.0;
     for(int h = 0; h < nirreps_; h++){

@@ -115,9 +115,6 @@ void Oaccd::ccd_a2_rhf(){
     global_dpd_->buf4_init(&T2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "T2");
 
-    outfile->Printf("T2s in");
-    global_dpd_->buf4_print(&T2,"tull3",1);   
-
     //Open a buffer for Omega
     global_dpd_->buf4_init(&Omega2, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "Omega2");
@@ -129,13 +126,12 @@ void Oaccd::ccd_a2_rhf(){
     //Contract old amplitudes with integrals
     global_dpd_->contract444(&T2,&I,&Omega2,0,0,1.0,1.0);
 
-    outfile->Printf("\n A2 Omega2 \n");
-    global_dpd_->buf4_print(&Omega2,"tull3",1);   
-
     global_dpd_->buf4_close(&I);
 
-    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
-    outfile->Printf("Temp norm A: %16.10f \n", temp_norm);
+    if(print_ > 1){
+        temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+        outfile->Printf("Temp norm A: %16.10f \n", temp_norm);
+    }
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&T2);
@@ -184,13 +180,12 @@ void Oaccd::ccd_b2_rhf(){
 
     global_dpd_->contract444(&W,&T2,&Omega2,0,1,1.0,1.0);
 
-    outfile->Printf("\n B2 Omega2 \n");
-    global_dpd_->buf4_print(&Omega2,"tull3",1);   
-
     global_dpd_->buf4_close(&W);
 
-    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
-    outfile->Printf("Temp norm B: %16.10f \n", temp_norm);
+    if(print_ > 1){
+        temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+        outfile->Printf("Temp norm B: %16.10f \n", temp_norm);
+    }
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&T2);
@@ -279,8 +274,10 @@ void Oaccd::ccd_c2_rhf(){
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&I, &Omega2, 1.0);
 
-    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
-    outfile->Printf("Temp norm C: %16.10f \n", temp_norm);
+    if(print_ > 1){
+        temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+        outfile->Printf("Temp norm C: %16.10f \n", temp_norm);
+    }
 
     global_dpd_->buf4_close(&I);
     global_dpd_->buf4_close(&Omega2);
@@ -359,8 +356,10 @@ void Oaccd::ccd_d2_rhf(){
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&W, &Omega2, 1.0);
 
-    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
-    outfile->Printf("Temp norm D: %16.10f \n", temp_norm);
+    if(print_ > 1){
+        temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+        outfile->Printf("Temp norm D: %16.10f \n", temp_norm);
+    }
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&W);
@@ -471,8 +470,10 @@ void Oaccd::ccd_e2_rhf(){
                   ID("[O,V]"), ID("[O,V]"), 0, "Omega2");
     global_dpd_->buf4_axpy(&W, &Omega2, 1.0);
 
-    temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
-    outfile->Printf("Temp norm E: %16.10f \n", temp_norm);
+    if(print_ > 1){
+        temp_norm = sqrt(global_dpd_->buf4_dot_self(&Omega2));
+        outfile->Printf("Temp norm E: %16.10f \n", temp_norm);
+    }
 
     global_dpd_->buf4_close(&Omega2);
     global_dpd_->buf4_close(&W);
@@ -503,8 +504,6 @@ double Oaccd::ccd_update_rhf(){
     //Divide omega with epsilon
     global_dpd_->buf4_init(&Omgs, PSIF_CC_TAMPS, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "Omega2");
-    outfile->Printf("Final Omega2");
-    global_dpd_->buf4_print(&Omgs,"tull3",1);   
     global_dpd_->buf4_init(&Amps, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0,  "D (i,j,a,b)");
     global_dpd_->buf4_dirprd(&Amps, &Omgs);
