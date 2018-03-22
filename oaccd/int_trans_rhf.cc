@@ -90,10 +90,11 @@ void Oaccd::int_trans_rhf(){
     //DPD needs both contracted indices in either row or column, so sort the integrals. 
     //In biorthogonal basis,, (VO|VO) =/= (OV|OV)
 
-    outfile->Printf("\n tF_energy is: %f \n",tF_energy);
     tFa_ = ints->compute_biort_fock_matrix(H_,lCa_,rCa_,tF_energy);
     tF_energy = tF_energy + nuc_energy; 
-    outfile->Printf("\n tF_energy is: %f \n",tF_energy);
+
+    outfile->Printf("\nOriginal reference energy:    %14.10f \n",energy_);
+    outfile->Printf(  "Transformed reference energy: %14.10f \n\n",tF_energy);
 
     psio_->open(PSIF_LIBTRANS_DPD, PSIO_OPEN_OLD);
 
@@ -168,15 +169,15 @@ void Oaccd::f_denominator(){
 
     //Transform the Fock matrix to MO basis
     FockA = tFa_;
-    outfile->Printf("\n Original Fock matrix lalala\n ");
-    Fa_->print();
-    outfile->Printf("\n One electron integrals\n ");
-    H_->print();
-    outfile->Printf("\n Printing the Fock matrix before\n ");
-    FockA->print();
+    if(print_ > 3){
+        outfile->Printf("\n Transformed SO Fock matrix\n ");
+        FockA->print();
+    }
     FockA->transform(lCa_, FockA, rCa_);
-    outfile->Printf("\n Printing the Fock matrix after\n ");
-    FockA->print();
+    if(print_ > 2){
+        outfile->Printf("\n Transformed MO Fock matrix\n ");
+        FockA->print();
+    }
 
     for(int h = 0; h < nirrep_; ++h){
         for(int i = frzcpi_[h]; i < doccpi_[h]; i++){

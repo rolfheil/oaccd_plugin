@@ -64,27 +64,33 @@ void Oaccd::common_init()
     bool t1trans = true;
     bool orthogonal = false;
 
+    print_ = options_.get_int("PRINT");
+
     // nsopi_, frzcpi_, etc are Dimension objects for symmetry orbitals
     // These are copied from ref_wfn when we call for shallow_copy
     virtpi_ = nsopi_ - frzcpi_ - frzvpi_ - doccpi_;
     adoccpi_ = doccpi_ - frzcpi_;
     avirtpi_ = virtpi_ - frzvpi_;
 
-    outfile->Printf("The wavefunction has the following dimensions:\n");
+    outfile->Printf("The wavefunction has the following dimensions:\n\n");
     nsopi_.print();
     frzcpi_.print();
     doccpi_.print();
     virtpi_.print();
     frzvpi_.print();
     nmopi_.print();
-    outfile->Printf("Irreps: %3i \n",nirrep_);
+    outfile->Printf("\n\n");
 
     //Set up some reference energy stuff that we'll need when changing basis
     tF_energy = energy_;
     nuc_energy = reference_wavefunction_->molecule()->nuclear_repulsion_energy(reference_wavefunction_->get_dipole_field_strength());
         
 
-    Fa_->print();
+    if(print_ > 2){
+        outfile->Printf("Original SO Fock matrix:\n");
+        Fa_->print();
+    }
+
     reference=options_.get_str("REFERENCE");
     cc_maxdiis = options_.get_int("CC_DIIS_MAX_VECS");
     cc_mindiis = options_.get_int("CC_DIIS_MIN_VECS");
@@ -94,12 +100,16 @@ void Oaccd::common_init()
 
     cc_maxiter = options_.get_int("CC_MAXITER");
 
-    outfile->Printf("\nmindiis %3i \n",cc_mindiis);
-    outfile->Printf("maxdiis %3i \n",cc_maxdiis);
-    outfile->Printf("maxiter %3i \n",cc_maxiter);
+    if(print_ > 1){
+        outfile->Printf("The following options were read in:\n");
+        outfile->Printf("  mindiis %3i \n",cc_mindiis);
+        outfile->Printf("  maxdiis %3i \n",cc_maxdiis);
+        outfile->Printf("  maxiter %3i \n",cc_maxiter);
 
-    outfile->Printf("\ne_convergence: %16.10f \n", e_convergence);
-    outfile->Printf("r_convergence: %16.10f \n", r_convergence);
+        outfile->Printf("  e_convergence: %16.10f \n", e_convergence);
+        outfile->Printf("  r_convergence: %16.10f \n", r_convergence);
+        outfile->Printf("\n\n");
+    }
 
     if(reference == "RHF") {//Only RHF for the time being
 
@@ -115,25 +125,33 @@ void Oaccd::common_init()
         FDiaVirA = std::shared_ptr<Vector>(        
         new Vector("Fock matrix virtual diagonal", avirtpi_));
 
-        outfile->Printf("Ca oaccd");
-        Ca_->print();
+        if(print_ > 2){
+            outfile->Printf("Original Ca coefficients:\n");
+            Ca_->print();
+        }
         
         lCa_ = std::shared_ptr<Matrix>(
                new Matrix(Ca_));
-        lCa_->set_name("left C matrix");
+        lCa_->set_name("left C alpha matrix");
 
         rCa_ = std::shared_ptr<Matrix>(
                new Matrix(Ca_));
-        rCa_->set_name("right C matrix");
+        rCa_->set_name("right C alpha matrix");
+
+        rCb_ = std::shared_ptr<Matrix>(
+               new Matrix(Ca_));
+        rCb_->set_name("right C beta matrix");
+        
+        lCb_ = std::shared_ptr<Matrix>(
+               new Matrix(Ca_));
+        lCb_->set_name("left C beta matrix");
 
         U_p = std::shared_ptr<Matrix>(
-               new Matrix(Ca_));
+               new Matrix("Right transform matrix", nsopi_, nsopi_));
 
         kappa = std::shared_ptr<Matrix>(
-               new Matrix(Ca_));
+                new Matrix("Kappa matrix", nsopi_, nsopi_));
 
-        U_p->set(0.0);
-        kappa->set(0.0);
         
         for(int h = 0; h < nirrep_; h++){
                 for(int i = 0; i < nmopi_[h]; i++){
@@ -174,6 +192,7 @@ void Oaccd::common_init()
 
             U_m = std::shared_ptr<Matrix>(
                    new Matrix(U_p));
+            U_m->set_name("Left transform matrix");
 
             kappa->set(0, 3,0, 0.000023187740);
             kappa->set(0, 3,1,-0.000988382087);
@@ -245,52 +264,32 @@ void Oaccd::common_init()
                    new Matrix(U_p));
         }
 
-        rCb_ = std::shared_ptr<Matrix>(
-               new Matrix(Ca_));
+        if(print_ > 2){
+            outfile->Printf("Kappa matrix:\n");
+            kappa->print();
+            outfile->Printf("\n U_p matrix \n");
+            U_p->print();
+            outfile->Printf("\n U_m matrix \n");
+            U_m->print();
+        }
         
-        rCb_->gemm(false, false, 1.0, rCa_, U_p, 0.0); 
-        rCa_->copy(rCb_); 
-
-        rCb_->gemm(false, true, 1.0, lCa_, U_m, 0.0); 
-        lCa_->copy(rCb_); 
+        rCa_->gemm(false, false, 1.0, Ca_, U_p, 0.0); 
+        lCa_->gemm(false, true, 1.0, Ca_, U_m, 0.0); 
         
-        outfile->Printf("Original Ca_");
-        Ca_->print();
-        outfile->Printf("lCa_");
-        lCa_->print();
-        outfile->Printf("rCa_");
-        rCa_->print();
+        if(print_ > 2){
+            outfile->Printf("Transformed coefficient matrices:\n");
+            lCa_->print();
+            rCa_->print();
+        }
 
-        lCb_ = std::shared_ptr<Matrix>(
-               new Matrix(S_));
-        outfile->Printf("S overlap matrix");
-        lCb_->print();
+        if(print_ > 3){
+            outfile->Printf("\n Original alpha density Da_ \n");
+            Da_->print();
 
-        lCb_->gemm(false, false, 1.0, S_, lCa_, 0.0);
+            outfile->Printf("\n Core Hamiltonian H_ \n");
+            H_->print();
+        }
 
-        rCb_->gemm(true, false, 1.0, lCb_, rCa_, 0.0);
-        outfile->Printf("\n Product of S x lCa x rCa \n");
-        rCb_->print();
-
-        rCb_->gemm(true, false, 1.0, lCa_, rCa_, 0.0);
-        outfile->Printf("\n Product of lCa x rCa \n");
-        rCb_->print();
-
-        outfile->Printf("\n Alpha density Da_ \n");
-        Da_->print();
-
-        outfile->Printf("\n Core Hamiltonian H_ \n");
-        H_->print();
-
-        outfile->Printf("\n MO Fock matrix \n");
-        lCb_->transform(Ca_, Fa_, Ca_);
-        lCb_->print();
-
-        outfile->Printf("\n U_p matrix \n");
-        U_p->print();
-        outfile->Printf("\n U_m matrix \n");
-        U_m->print();
-        
         lCb_ = lCa_;
         rCb_ = rCa_;
         Ca_ ->set(0.0);

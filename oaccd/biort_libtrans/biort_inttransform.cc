@@ -78,8 +78,6 @@ BiortIntTransform::BiortIntTransform(std::shared_ptr<Wavefunction> wfn,
     nbetapi_ = wfn->nbetapi();
     frozen_core_energy_ = 0.0; 
 
-    outfile->Printf("The Legend of Zelda \n");
-
     common_initialize();
 
     if(init) initialize();

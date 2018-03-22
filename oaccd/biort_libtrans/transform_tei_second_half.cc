@@ -53,7 +53,6 @@ BiortIntTransform::transform_tei_second_half(const std::shared_ptr<MOSpace> s1, 
 {
     check_initialized();
 
-    outfile->Printf( "\t Inside tei_second_half \n");
     bool bra_sym = s1 == s2;
     bool ket_sym = s3 == s4;
     bool bra_ket_sym = (s1 == s3) && bra_sym && ket_sym;

@@ -86,6 +86,7 @@ protected:
     int cc_maxdiis;
     int cc_mindiis;
     string reference;
+    int print_;
 
     //Library stuff
     BiortIntTransform *ints;

@@ -47,7 +47,7 @@ namespace psi{ namespace oaccd{
 /**
  * @brief - Constructs the Fock matrix in SO basis. Uses the density matrix constructed from the two 
  *          coefficient matrices. This makes it possible to construct the Fock matrix in a nonorthogonal 
- *          basis.
+ *          basis. Assumes that you can hold n^3 integrals in memory
  * @param Hcore - the SO basis core Hamiltonian contribution to the Fock matrix.
  * @param Clmat - Left C coefficient matrix
  * @param Crmat - Right C coefficient matrix
@@ -145,16 +145,16 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
                         C_DGEMV('N', sopi_[h_delta], sopi_[h_alpha]*sopi_[h_alpha], 2.0, &J.matrix[h][0][alpha_off2], J.params->rowtot[h],
                                 pDmat[0], 1, 1.0,&pFmat[0][delta],sopi_[h_delta]);
                         alpha_off2 = alpha_off2 + sopi_[h_alpha]*sopi_[h_alpha];
-                    }//end alpha for-loop     
-                }//end if statement 
+                    }//end h_alpha for-loop     
+                }//end h==0 if statement
 
                 //Calculate exchange part
                 pDmat = Dmat->pointer(h_gamma);  
                 for(int gamma = 0; gamma < sopi_[h_gamma]; gamma++){
                     for(int alpha = 0; alpha < sopi_[h_delta]; alpha++){
                         pFmat[delta][alpha] -= C_DDOT(sopi_[h_gamma],&J.matrix[h][gamma][alpha+alpha_off],sopi_[h_delta],pDmat[gamma],1);
-                    }
-                }
+                    }//end alpha loop
+                }//end gamma loop
                          
                
             }// end delta loop
@@ -167,25 +167,14 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     // Hand DPD control back to the user
     dpd_set_default(currentActiveDPD);
 
-    //Calculate new reference energy and add OEIs
-    temp->transform(Clmat,Fmat,Crmat);
-    double exchange = 0.0;
-    for(int h = 0; h < nirreps_; h++){
-        for(int i = 0; i < occpiv[h]; i++){
-            exchange -= temp->get(h,i,i); 
-        }
-    }
+
+    //Calculate transformed Fock energy
+    temp->gemm(false,false,1.0,Fmat,Dmat,0.0);
+    tFock_energy = temp->trace();
+    temp->gemm(false,false,1.0,Hcore,Dmat,0.0);
+    tFock_energy += 2*temp->trace();
 
     Fmat->add(Hcore);
-
-    temp->transform(Clmat,Fmat,Crmat);
-    for(int h = 0; h < nirreps_; h++){
-        for(int i = 0; i < occpiv[h]; i++){
-            exchange += 2*temp->get(h,i,i); 
-        }
-    }
-    
-    tFock_energy = exchange;
 
     return Fmat;
 }
