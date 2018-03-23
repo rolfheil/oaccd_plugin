@@ -63,18 +63,16 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
     if(!alreadyPresorted_)
         presort_so_tei();
 
-    dpdbuf4 I;
-   
-    // Form the Density matrices associated with the C matrices, and allocate the F matrices.
+    //Some sanity check
     if(Clmat->rowspi() != sopi_)
         throw PSIEXCEPTION("Row dimension of C_l matrix is not equal to SOs per irrep in BiortIntTransform::compute_biort_fock_matrix()");
     if(Crmat->rowspi() != sopi_)
         throw PSIEXCEPTION("Row dimension of C_r matrix is not equal to SOs per irrep in BiortIntTransform::compute_biort_fock_matrix()");
-    //SharedMatrix Fmat;
+
+    //Alocate Fock matrix and density matrix
     SharedMatrix Dmat(new Matrix("D matrix", sopi_, sopi_));
     SharedMatrix Fmat(new Matrix("F matrix", sopi_, sopi_));
     Fmat->set_name("Transformed Fock matrix");
-    SharedMatrix temp(new Matrix("temp mat", sopi_, sopi_));
 
     // Grab control of DPD for now, but store the active number to restore it later
     int currentActiveDPD = psi::dpd_default;
@@ -160,19 +158,30 @@ SharedMatrix BiortIntTransform::compute_biort_fock_matrix(SharedMatrix Hcore, Sh
             }// end delta loop
         } //end h_delta loop
     } //end h loop
-    global_dpd_->buf4_close(&J);
 
+    global_dpd_->buf4_close(&J);
     psio_->close(PSIF_SO_PRESORT, keepDpdSoInts_);
 
     // Hand DPD control back to the user
     dpd_set_default(currentActiveDPD);
 
-
     //Calculate transformed Fock energy
-    temp->gemm(false,false,1.0,Fmat,Dmat,0.0);
-    tFock_energy = temp->trace();
-    temp->gemm(false,false,1.0,Hcore,Dmat,0.0);
-    tFock_energy += 2*temp->trace();
+    //E(D) = 2*trace(H*D) + trace(D*G*D)
+    double **pHcore;
+    tFock_energy = 0;
+    for(int h = 0; h < nirreps_; h++){
+
+        pFmat = Fmat->pointer(h);  
+        pDmat = Dmat->pointer(h);  
+        pHcore = Hcore->pointer(h);  
+
+        for(int n = 0; n < sopi_[h]; n++){
+
+            tFock_energy += 2*C_DDOT(sopi_[h],pHcore[n],1,&pDmat[0][n],sopi_[h]);
+            tFock_energy += C_DDOT(sopi_[h],pFmat[n],1,&pDmat[0][n],sopi_[h]);
+
+        }
+    }
 
     Fmat->add(Hcore);
 
