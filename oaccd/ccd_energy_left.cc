@@ -95,16 +95,22 @@ double Oaccd::ccd_energy_rhf(){
 void Oaccd::ccd_a2_rhf(){
 
     //A2 term: Omega^ab_ij += (ai|bj) + Sum_cd t^cd_ij*(ac|bd), the most expensive 
+    //A2 term: Omega^ab_ij += 0.5*(ia|jb) - 0.5*(ib|ja)  
 
     dpdbuf4 I;  //Integrals
     dpdbuf4 T2; //old T2 amplitudes
     dpdbuf4 Omega2; //Omega2 vector
+    dpdbuf4 Lamdba2; //Lambda2 vector
 
     timer_on("A2");
 
     //Open a buffer for the aibj integrals
     global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[O,O]"), ID("[V,V]"),
                   ID("[O,O]"), ID("[V,V]"), 0, "(VO|VO) (i,j,a,b)");
+
+    //Open a buffer for the aibj integrals
+    global_dpd_->buf4_init(&I, PSIF_LIBTRANS_DPD, 0, ID("[V,V]"), ID("[O,O]"),
+                  ID("[V,V]"), ID("[O,O]"), 0, "(OV|OV) (a,b,i,j)");
 
     //Copy integrals into amplitude buffer, first term
     global_dpd_->buf4_copy(&I, PSIF_CC_TAMPS, "Omega2");
