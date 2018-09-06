@@ -58,11 +58,7 @@ void Oaccd::common_init()
     std::shared_ptr<Matrix> U_p;
     std::shared_ptr<Matrix> U_m;
     std::shared_ptr<Matrix> kappa;
-    double theta = 1.0;
-    bool biort= false;
-    bool nonsym = false;
     bool t1trans = true;
-    bool orthogonal = false;
 
     print_ = options_.get_int("PRINT");
 
@@ -159,48 +155,20 @@ void Oaccd::common_init()
                 }
         }
 
-        if(biort){
-            U_p->set(0,1,1,cosh(theta));
-            U_p->set(0,2,2,cosh(theta));
-      
-            U_p->set(0,5,5,cosh(theta));
-            U_p->set(0,6,6,cosh(theta));
-      
-            U_m = std::shared_ptr<Matrix>(
-                   new Matrix(U_p));
- 
-            U_p->set(0,1,2,-sinh(theta));
-            U_p->set(0,2,1,-sinh(theta));
-            U_m->set(0,1,2,sinh(theta));
-            U_m->set(0,2,1,sinh(theta));
- 
-            U_p->set(0,5,6,-sinh(theta));
-            U_p->set(0,6,5,-sinh(theta));
-            U_m->set(0,5,6,sinh(theta));
-            U_m->set(0,6,5,sinh(theta));
-        }
-        else if(nonsym){
-            double x = 0.1;
-
-            U_m = std::shared_ptr<Matrix>(
-                   new Matrix(U_p));
- 
-            U_p->set(0,1,2,x);
-            U_m->set(0,1,2,-x);
-        }
-        else if(t1trans){
+        if(t1trans){
 
             U_m = std::shared_ptr<Matrix>(
                    new Matrix(U_p));
             U_m->set_name("Left transform matrix");
 
+            /*
             kappa->set(0, 3,0, 0.000023187740);
             kappa->set(0, 3,1,-0.000988382087);
             kappa->set(0, 3,2, 0.010371795264);
 
             kappa->set(3, 1,0,-0.003295502210);
+            */
 
-            /*
             kappa->set(0, 5,0,-0.000108178);
             kappa->set(0, 5,1,-0.003184533);
             kappa->set(0, 5,2, 0.000000000);
@@ -241,23 +209,10 @@ void Oaccd::common_init()
             kappa->set(0,12,2, 0.000000000);
             kappa->set(0,12,3,-0.002107662);
             kappa->set(0,12,4, 0.000000000);
-            */
  
             U_p->axpy(1.0,kappa);
             U_m->axpy(-1.0,kappa);
  
-        }
-        else if(orthogonal){
-            U_p->set(0,1,1,cos(theta));
-            U_p->set(0,2,2,cos(theta));
-      
-            U_m = std::shared_ptr<Matrix>(
-                   new Matrix(U_p));
- 
-            U_p->set(0,1,2,-sin(theta));
-            U_p->set(0,2,1,sin(theta));
-            U_m->set(0,1,2,sin(theta));
-            U_m->set(0,2,1,-sin(theta));
         }
         else{
             U_m = std::shared_ptr<Matrix>(
@@ -297,7 +252,6 @@ void Oaccd::common_init()
     else{
         throw PSIEXCEPTION("OACCD only implemented for RHF");
     }
-
 
 }
 
